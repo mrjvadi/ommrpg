@@ -233,12 +233,27 @@ func RollRarity(r *seed.Rand, luck float64, min Rarity) Rarity {
 
 // Generate creates an item. minRarity lets bosses guarantee quality.
 func Generate(s uint64, itemLevel int, luck float64, minRarity Rarity) Item {
-	if itemLevel < 1 {
-		itemLevel = 1
-	}
 	r := seed.New(seed.Derive(s, "item"))
 	base := seed.Pick(r, Bases)
 	rar := RollRarity(r, luck, minRarity)
+	return build(r, s, base, itemLevel, rar)
+}
+
+// GenerateBase creates an item of a fixed base and rarity (starter kits,
+// quest rewards, crafted items).
+func GenerateBase(s uint64, baseID string, itemLevel int, rar Rarity) (Item, bool) {
+	base, ok := BaseByID(baseID)
+	if !ok {
+		return Item{}, false
+	}
+	r := seed.New(seed.Derive(s, "item", baseID))
+	return build(r, s, base, itemLevel, rar), true
+}
+
+func build(r *seed.Rand, s uint64, base Base, itemLevel int, rar Rarity) Item {
+	if itemLevel < 1 {
+		itemLevel = 1
+	}
 	it := Item{
 		RulesVersion: RulesVersion,
 		Seed:         s,

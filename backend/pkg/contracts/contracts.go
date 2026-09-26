@@ -283,6 +283,8 @@ const (
 	PresenceGet      = "presence.get"
 	PresenceNearby   = "presence.nearby"
 	PresenceTeleport = "presence.teleport"
+	// PresenceLook tells nearby players to refresh someone's appearance.
+	PresenceLook = "presence.look"
 )
 
 type Position struct {
