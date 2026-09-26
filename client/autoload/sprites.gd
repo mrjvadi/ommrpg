@@ -87,9 +87,9 @@ static func creature_url(species: Dictionary) -> String:
 		float(species.get("hue", 0.0)), float(species.get("hue2", 0.0)), 1 if species.get("big", false) else 0]
 
 static func icon_url(item: Dictionary) -> String:
-	return "/api/v1/sprites/icon.png?seed=%s&shape=%s&hue=%.4f&rarity=%d" % [
+	return "/api/v1/sprites/icon.png?seed=%s&shape=%s&hue=%.4f&rarity=%d&element=%s" % [
 		str(item.get("icon_seed", "0")), str(item.get("icon", "ring")), float(item.get("hue", 0.0)),
-		rarity_index(str(item.get("rarity", "common")))]
+		rarity_index(str(item.get("rarity", "common"))), str(item.get("element", ""))]
 
 const RARITIES := ["common", "uncommon", "rare", "epic", "legendary", "mythic"]
 const RARITY_COLORS := [Color("c8c8c8"), Color("5adc5a"), Color("468cff"), Color("be5aff"), Color("ffa028"), Color("ff466e")]

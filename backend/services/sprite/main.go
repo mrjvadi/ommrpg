@@ -170,9 +170,12 @@ func decodeRecipe(s string) (c.Recipe, error) {
 	return rec, nil
 }
 
-func (a *app) render(ctx context.Context, rec c.Recipe) (string, []byte, error) {
+func (a *app) render(ctx context.Context, rec c.Recipe, mask string) (string, []byte, error) {
 	rec, _ = a.comp.Normalize(rec)
 	h := a.comp.Hash(rec)
+	if mask != "" {
+		h += "-" + mask
+	}
 	if b, ok := a.cache.Get(h); ok {
 		return h, b, nil
 	}
@@ -187,7 +190,13 @@ func (a *app) render(ctx context.Context, rec c.Recipe) (string, []byte, error) 
 	case <-ctx.Done():
 		return "", nil, ctx.Err()
 	}
-	b, err := a.comp.RenderPNG(ctx, rec)
+	var b []byte
+	var err error
+	if mask != "" {
+		b, err = a.comp.RenderMaskPNG(ctx, rec, mask)
+	} else {
+		b, err = a.comp.RenderPNG(ctx, rec)
+	}
 	if err != nil {
 		return "", nil, apperr.New(apperr.Unavailable, "render failed: %v", err)
 	}
@@ -213,7 +222,12 @@ func (a *app) characterPNG(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, err)
 		return
 	}
-	h, b, err := a.render(r.Context(), rec)
+	mask := r.URL.Query().Get("mask")
+	if mask != "" && mask != "weapon" && mask != "shield" {
+		httpx.Error(w, apperr.New(apperr.Invalid, "mask must be weapon or shield"))
+		return
+	}
+	h, b, err := a.render(r.Context(), rec, mask)
 	if err != nil {
 		httpx.Error(w, err)
 		return
@@ -281,7 +295,7 @@ func (a *app) icon(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	rar, _ := strconv.Atoi(q.Get("rarity"))
 	a.cachedImage(w, r, "icon:"+q.Encode(), func() *image.NRGBA {
-		return sprite.Icon(qu(r, "seed"), q.Get("shape"), qf(r, "hue"), rar)
+		return sprite.IconFX(qu(r, "seed"), q.Get("shape"), qf(r, "hue"), rar, q.Get("element"))
 	})
 }
 

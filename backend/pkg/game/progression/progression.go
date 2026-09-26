@@ -149,6 +149,8 @@ type Bonuses struct {
 	WeaponKind string  `json:"weapon_kind"` // melee | ranged | magic | "" (fists)
 	Range      float64 `json:"range"`
 	Cooldown   float64 `json:"cooldown"`
+	Element    string  `json:"element,omitempty"`
+	ElementDmg int     `json:"element_damage,omitempty"`
 }
 
 // Derived are the numbers combat and movement actually use.
@@ -164,6 +166,8 @@ type Derived struct {
 	XPBonus    float64 `json:"xp_bonus"`
 	MagicFind  float64 `json:"magic_find"`
 	WeaponKind string  `json:"weapon_kind"`
+	Element    string  `json:"element,omitempty"`
+	ElementDmg int     `json:"element_damage,omitempty"`
 }
 
 // Derive computes combat stats from level, attributes and equipment.
@@ -177,6 +181,8 @@ func Derive(level int, base Attributes, hidden Hidden, eq Bonuses) Derived {
 		XPBonus:    eq.XPPct / 100,
 		MagicFind:  eq.MagicFind / 100,
 		WeaponKind: eq.WeaponKind,
+		Element:    eq.Element,
+		ElementDmg: eq.ElementDmg,
 		Range:      eq.Range,
 		Cooldown:   eq.Cooldown,
 	}

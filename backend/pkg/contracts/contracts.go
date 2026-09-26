@@ -125,6 +125,7 @@ type Character struct {
 	WorldID    int                    `json:"world_id"`
 	Appearance Recipe                 `json:"appearance"`
 	Derived    *progression.Derived   `json:"derived,omitempty"`
+	FX         *items.FX              `json:"fx,omitempty"`
 	// RootHint is the only visible trace of the hidden Root: a vague omen.
 	RootHint  string    `json:"root_hint,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
@@ -142,11 +143,12 @@ type CharacterListResp struct {
 
 // PublicCharacter is what other players see.
 type PublicCharacter struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Level      int    `json:"level"`
-	Class      string `json:"class,omitempty"`
-	Appearance Recipe `json:"appearance"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Level      int       `json:"level"`
+	Class      string    `json:"class,omitempty"`
+	Appearance Recipe    `json:"appearance"`
+	FX         *items.FX `json:"fx,omitempty"`
 }
 
 type AllocateReq struct {
@@ -273,6 +275,8 @@ type SalvageResp struct {
 type BonusesResp struct {
 	Bonuses progression.Bonuses `json:"bonuses"`
 	Looks   []Layer             `json:"looks"`
+	// FX of the equipped weapon (element glow / enhancement aura).
+	FX *items.FX `json:"fx,omitempty"`
 }
 
 // ---------------------------------------------------------------- presence

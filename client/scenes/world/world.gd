@@ -66,6 +66,11 @@ func _ready() -> void:
 	player = LpcSprite.new()
 	player.set_label(str(Game.character.name), UiKit.ACCENT)
 	player.set_recipe(Game.character.appearance)
+	player.set_fx(Game.character.appearance, Game.character.get("fx"))
+	Game.character_changed.connect(func():
+		if is_instance_valid(player):
+			player.set_recipe(Game.character.appearance)
+			player.set_fx(Game.character.appearance, Game.character.get("fx")))
 	map.entities.add_child(player)
 	player.add_child(camera)
 	camera.position_smoothing_enabled = true
@@ -240,6 +245,7 @@ func _load_remote_look(id: String) -> void:
 		var node: LpcSprite = remotes[id].node
 		node.set_label("%s  %d" % [str(r.data.name), int(r.data.level)])
 		node.set_recipe(r.data.appearance)
+		node.set_fx(r.data.appearance, r.data.get("fx"))
 
 # ---------------------------------------------------------------- frame
 
@@ -436,7 +442,13 @@ func _try_attack() -> void:
 		return
 	var d: Dictionary = r.data
 	if is_instance_valid(m):
-		FloatingText.spawn(map.entities, m.position, str(int(d.hit.damage)) + ("!" if d.hit.crit else ""), Color("ffd24a") if d.hit.crit else Color.WHITE, 18 if d.hit.crit else 14)
+		var el := str(d.hit.get("element", ""))
+		var dcol: Color = LpcSprite.ELEMENT_COLORS.get(el, Color.WHITE)
+		if d.hit.crit:
+			dcol = Color("ffd24a") if el == "" else dcol.lightened(0.3)
+		FloatingText.spawn(map.entities, m.position, str(int(d.hit.damage)) + ("!" if d.hit.crit else ""), dcol, 18 if d.hit.crit else 14)
+		if el != "":
+			m.burst(dcol)
 		if d.killed:
 			m.die(Time.get_unix_time_from_system() * 1000.0 + 45000.0)
 			FloatingText.spawn(map.entities, player.position + Vector2(0, -30), "+%d XP" % int(d.xp), Color("7ab8ff"), 14)
@@ -638,6 +650,15 @@ func _autotest(now: float) -> void:
 					_autotest_stage = "busy"
 					await get_tree().create_timer(2.0).timeout
 					await Cfg.shot("02_world")
+					if Cfg.shot_dir != "":
+						for el in ["fire", "lightning", "frost"]:
+							player.set_fx(Game.character.appearance, {"element": el, "tier": 3, "rarity": "mythic"})
+							player.play_once("slash")
+							camera.zoom = Vector2(4, 4)
+							await get_tree().create_timer(1.2).timeout
+							await Cfg.shot("06_fx_" + el)
+						_fit_camera()
+						player.set_fx(Game.character.appearance, Game.character.get("fx"))
 					print("AUTOTEST hunting ", best.id)
 					_autotest_kill = best.id
 					_tap(best.tile_pos())

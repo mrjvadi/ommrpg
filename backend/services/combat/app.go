@@ -283,5 +283,6 @@ func (a *app) player(ctx context.Context, req c.CharacterReq) (c.PlayerVitals, e
 // resolveHit computes the damage of one attack (elements are added by the
 // weapon effects system).
 func (a *app) resolveHit(s uint64, prof c.CombatProfile, sp bestiary.Species, st bestiary.Stats) combat.Hit {
-	return combat.Resolve(s, prof.Derived.Attack, st.Defense, prof.Derived.CritChance)
+	d := prof.Derived
+	return combat.ResolveElemental(s, d.Attack, st.Defense, d.CritChance, d.Element, d.ElementDmg, sp.Resist(d.Element))
 }

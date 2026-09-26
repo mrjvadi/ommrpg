@@ -151,7 +151,23 @@ const (
 	StatLifeSteal = "lifesteal_pct"
 	StatXP        = "xp_pct"
 	StatMagicFind = "magic_find_pct"
+	StatElement   = "elem_dmg"
 )
+
+// Elements a weapon can carry. They add damage and interact with monster
+// weaknesses/resistances, and drive the weapon's visual effect.
+const (
+	Fire      = "fire"
+	Frost     = "frost"
+	Lightning = "lightning"
+	Poison    = "poison"
+	Holy      = "holy"
+	Shadow    = "shadow"
+)
+
+var Elements = []string{Fire, Frost, Lightning, Poison, Holy, Shadow}
+
+var elementChance = []float64{0, 0.12, 0.35, 0.6, 0.85, 1}
 
 type affixDef struct {
 	stat           string
@@ -214,6 +230,9 @@ type Item struct {
 	Icon         string      `json:"icon"`
 	Hue          float64     `json:"hue"`
 	Appearance   *Appearance `json:"appearance,omitempty"`
+	// Element and its base damage (weapons only).
+	Element       string `json:"element,omitempty"`
+	ElementDamage int    `json:"element_damage,omitempty"`
 }
 
 var metalByRarity = []string{"iron", "steel", "silver", "gold", "gold", "brass"}
@@ -311,7 +330,50 @@ func build(r *seed.Rand, s uint64, base Base, itemLevel int, rar Rarity) Item {
 		}
 		it.Appearance = ap
 	}
+	// Rolled last so adding elements did not change older rolls.
+	if base.Slot == Weapon {
+		er := seed.New(seed.Derive(s, "element"))
+		if er.Chance(elementChance[rar]) {
+			it.Element = seed.Pick(er, Elements)
+			it.ElementDamage = int(math.Max(1, math.Round((2+0.9*L)*(0.8+0.15*float64(rar))*er.FRange(0.85, 1.15))))
+			if len(it.Affixes) == 0 {
+				it.Name = elementTitle[it.Element] + " " + it.Name
+			} else if rar < Legendary {
+				it.Name = it.Name + " (" + elementTitle[it.Element] + ")"
+			}
+		}
+	}
 	return it
+}
+
+var elementTitle = map[string]string{Fire: "Blazing", Frost: "Frozen", Lightning: "Thundering", Poison: "Venomous", Holy: "Hallowed", Shadow: "Shadowed"}
+
+// FX is the visual effect of an equipped weapon: its element and a glow
+// tier from enhancement (0 none, 1 aura +5, 2 radiant +10, 3 mythic +15).
+type FX struct {
+	Element string `json:"element,omitempty"`
+	Tier    int    `json:"tier"`
+	Rarity  string `json:"rarity"`
+}
+
+// WeaponFX returns the effect of an item, or nil when it has none.
+func WeaponFX(it Item, st State) *FX {
+	tier := 0
+	switch {
+	case st.Enhance >= 15:
+		tier = 3
+	case st.Enhance >= 10:
+		tier = 2
+	case st.Enhance >= 5:
+		tier = 1
+	}
+	if it.Element == "" && tier == 0 && it.Rarity < Legendary {
+		return nil
+	}
+	if tier == 0 {
+		tier = 1 // elemental and legendary weapons always shimmer a little
+	}
+	return &FX{Element: it.Element, Tier: tier, Rarity: it.Rarity.String()}
 }
 
 var mythicTraits = []string{
@@ -392,6 +454,9 @@ func Effective(it Item, st State) map[string]float64 {
 	}
 	if it.CritPct > 0 {
 		out[StatCrit] += it.CritPct
+	}
+	if it.ElementDamage > 0 {
+		out[StatElement] += math.Round(float64(it.ElementDamage) * m)
 	}
 	for _, a := range it.Affixes {
 		v := a.Value

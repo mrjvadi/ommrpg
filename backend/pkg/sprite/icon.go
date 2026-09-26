@@ -146,6 +146,37 @@ func IconShapes() []string {
 	return out
 }
 
+// ElementColor is the signature colour of each element (shared with the
+// client's weapon effects).
+var ElementColor = map[string]color.NRGBA{
+	"fire": {255, 120, 30, 255}, "frost": {130, 215, 255, 255}, "lightning": {200, 210, 255, 255},
+	"poison": {120, 240, 80, 255}, "holy": {255, 240, 150, 255}, "shadow": {160, 80, 255, 255},
+}
+
+// IconFX is Icon with an elemental tint: the gem takes the element colour
+// and a few sparkles surround the silhouette.
+func IconFX(s uint64, shape string, hue float64, rarity int, element string) *image.NRGBA {
+	img := Icon(s, shape, hue, rarity)
+	ec, ok := ElementColor[element]
+	if !ok {
+		return img
+	}
+	r := seed.New(seed.Derive(s, "icon-fx"))
+	gem := RarityColor[min(max(rarity, 0), len(RarityColor)-1)]
+	for i := 0; i+3 < len(img.Pix); i += 4 {
+		if img.Pix[i] == gem.R && img.Pix[i+1] == gem.G && img.Pix[i+2] == gem.B && img.Pix[i+3] == 255 {
+			img.Pix[i], img.Pix[i+1], img.Pix[i+2] = ec.R, ec.G, ec.B
+		}
+	}
+	for k := 0; k < 6; k++ {
+		x, y := r.Intn(30)+1, r.Intn(30)+1
+		if img.NRGBAAt(x, y).A == 0 {
+			img.SetNRGBA(x, y, ec)
+		}
+	}
+	return img
+}
+
 // Icon draws a 32x32 item icon.
 func Icon(s uint64, shape string, hue float64, rarity int) *image.NRGBA {
 	pat, ok := iconPatterns[shape]

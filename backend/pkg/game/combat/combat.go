@@ -31,6 +31,23 @@ func Resolve(s uint64, attack, defense int, critChance float64) Hit {
 	return h
 }
 
+// ResolveElemental is Resolve plus elemental damage scaled by the target's
+// weakness/resistance (resist multiplier). Crits also amplify the element.
+func ResolveElemental(s uint64, attack, defense int, critChance float64, element string, elemDmg int, resist float64) Hit {
+	h := Resolve(s, attack, defense, critChance)
+	if element == "" || elemDmg <= 0 {
+		return h
+	}
+	b := float64(elemDmg) * resist
+	if h.Crit {
+		b *= 1.5
+	}
+	h.Bonus = int(math.Round(b))
+	h.Damage += h.Bonus
+	h.Element = element
+	return h
+}
+
 // InRange compares positions (tile units, centre of tile = +0.5).
 func InRange(ax, ay, bx, by, rng float64) bool {
 	return math.Hypot(ax-bx, ay-by) <= rng+0.35

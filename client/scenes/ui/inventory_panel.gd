@@ -6,6 +6,7 @@ const STAT_NAMES := {
 	"damage": "Damage", "armor": "Armor", "str": "Strength", "agi": "Agility", "int": "Intellect",
 	"vit": "Vitality", "hp": "Health", "magic": "Spell power", "crit_pct": "Crit %",
 	"speed_pct": "Move speed %", "lifesteal_pct": "Life steal %", "xp_pct": "XP bonus %", "magic_find_pct": "Magic find %",
+	"elem_dmg": "Elemental damage",
 }
 
 var _items: Array = []
@@ -93,6 +94,9 @@ func _show(it: Dictionary) -> void:
 	col.add_child(UiKit.label(lvl_text, 15, UiKit.TEXT))
 	for k in it.stats.keys():
 		col.add_child(UiKit.label("%s  %s" % [STAT_NAMES.get(k, k), str(it.stats[k])], 16, UiKit.GOOD))
+	if str(it.item.get("element", "")) != "":
+		var el := str(it.item.element)
+		col.add_child(UiKit.para("%s element: bonus damage, strong or weak against different monster families" % el.capitalize(), 15, LpcSprite.ELEMENT_COLORS.get(el, Color.WHITE)))
 	if str(it.item.get("trait", "")) != "":
 		col.add_child(UiKit.para(str(it.item.trait), 15, Sprites.rarity_color("mythic")))
 	var row := HBoxContainer.new()

@@ -74,6 +74,24 @@ func hit(new_hp: int, new_max: int) -> void:
 	_flash = 0.15
 	queue_redraw()
 
+## A short elemental burst when hit by an element.
+func burst(col: Color) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.amount = 14
+	p.lifetime = 0.45
+	p.explosiveness = 0.9
+	p.spread = 180.0
+	p.initial_velocity_min = 25.0
+	p.initial_velocity_max = 60.0
+	p.gravity = Vector2.ZERO
+	p.scale_amount_max = 2.0
+	p.color = col
+	p.position = Vector2(0, -12)
+	add_child(p)
+	p.emitting = true
+	get_tree().create_timer(1.0).timeout.connect(p.queue_free)
+
 func die(until: int) -> void:
 	dead_until = until
 	hp = 0

@@ -102,6 +102,20 @@ type drawOp struct {
 
 // Render composes the full universal sheet for a recipe.
 func (c *Composer) Render(ctx context.Context, r contracts.Recipe) (*image.NRGBA, error) {
+	sheet, _, err := c.render(ctx, r, "")
+	return sheet, err
+}
+
+// RenderMask returns a sheet-sized mask (white where the final, visible
+// pixel belongs to a part of `typeName`, e.g. "weapon"). Clients draw
+// effects (element glow, enhancement aura) only on those pixels, so a sword
+// held behind the body is correctly not glowing through it.
+func (c *Composer) RenderMask(ctx context.Context, r contracts.Recipe, typeName string) (*image.NRGBA, error) {
+	_, mask, err := c.render(ctx, r, typeName)
+	return mask, err
+}
+
+func (c *Composer) render(ctx context.Context, r contracts.Recipe, maskType string) (*image.NRGBA, *image.NRGBA, error) {
 	r, _ = c.Normalize(r)
 	bodyColor := ""
 	for _, l := range r.Layers {
@@ -120,6 +134,10 @@ func (c *Composer) Render(ctx context.Context, r contracts.Recipe) (*image.NRGBA
 	}
 	sort.SliceStable(ops, func(a, b int) bool { return ops[a].z < ops[b].z })
 	sheet := image.NewNRGBA(image.Rect(0, 0, SheetW, SheetH))
+	var owner []bool
+	if maskType != "" {
+		owner = make([]bool, SheetW*SheetH)
+	}
 	drawn := 0
 	for _, op := range ops {
 		mappings := c.mappings(op.item, op.sel, bodyColor)
@@ -137,20 +155,77 @@ func (c *Composer) Render(ctx context.Context, r contracts.Recipe) (*image.NRGBA
 				continue
 			}
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if len(mappings) > 0 {
 				img = recolor(img, mappings)
 			}
-			dst := image.Rect(0, anim.Row*Frame, SheetW, (anim.Row+anim.Rows)*Frame)
-			draw.Draw(sheet, dst, img, image.Point{}, draw.Over)
+			if owner == nil {
+				dst := image.Rect(0, anim.Row*Frame, SheetW, (anim.Row+anim.Rows)*Frame)
+				draw.Draw(sheet, dst, img, image.Point{}, draw.Over)
+			} else {
+				blitTracked(sheet, img, anim.Row*Frame, anim.Rows*Frame, owner, op.item.TypeName == maskType)
+			}
 			drawn++
 		}
 	}
 	if drawn == 0 {
-		return nil, fmt.Errorf("no layer images could be loaded (is the asset store reachable?)")
+		return nil, nil, fmt.Errorf("no layer images could be loaded (is the asset store reachable?)")
 	}
-	return sheet, nil
+	if owner == nil {
+		return sheet, nil, nil
+	}
+	mask := image.NewNRGBA(sheet.Rect)
+	for i, own := range owner {
+		if own && sheet.Pix[i*4+3] > 0 {
+			mask.Pix[i*4], mask.Pix[i*4+1], mask.Pix[i*4+2], mask.Pix[i*4+3] = 255, 255, 255, 255
+		}
+	}
+	return sheet, mask, nil
+}
+
+// blitTracked draws src "over" dst at row offset oy and records, per pixel,
+// whether the topmost opaque-enough contribution came from the tracked part.
+func blitTracked(dst, src *image.NRGBA, oy, maxH int, owner []bool, tracked bool) {
+	w := min(src.Rect.Dx(), SheetW)
+	h := min(src.Rect.Dy(), maxH)
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			si := src.PixOffset(x, y)
+			a := uint32(src.Pix[si+3])
+			if a == 0 {
+				continue
+			}
+			di := dst.PixOffset(x, oy+y)
+			if a == 255 {
+				copy(dst.Pix[di:di+4], src.Pix[si:si+4])
+			} else {
+				da := uint32(dst.Pix[di+3])
+				outA := a + da*(255-a)/255
+				for k := 0; k < 3; k++ {
+					sc, dc := uint32(src.Pix[si+k]), uint32(dst.Pix[di+k])
+					dst.Pix[di+k] = uint8((sc*a + dc*da*(255-a)/255) / max(outA, 1))
+				}
+				dst.Pix[di+3] = uint8(outA)
+			}
+			if a >= 128 {
+				owner[(oy+y)*SheetW+x] = tracked
+			}
+		}
+	}
+}
+
+// RenderMaskPNG renders a part mask and encodes it.
+func (c *Composer) RenderMaskPNG(ctx context.Context, r contracts.Recipe, typeName string) ([]byte, error) {
+	img, err := c.RenderMask(ctx, r, typeName)
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	if err := (&png.Encoder{CompressionLevel: png.BestSpeed}).Encode(&buf, img); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // RenderPNG renders and encodes.

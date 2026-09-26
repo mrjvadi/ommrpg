@@ -216,6 +216,7 @@ func (a *app) get(ctx context.Context, req c.CharacterReq) (c.Character, error) 
 	d := progression.Derive(r.Level, r.Attributes, r.Hidden, eq.Bonuses)
 	r.Derived = &d
 	r.Appearance = dressed(r.Appearance, eq)
+	r.FX = eq.FX
 	return r.Character, nil
 }
 
@@ -224,7 +225,8 @@ func (a *app) public(ctx context.Context, req c.CharacterReq) (c.PublicCharacter
 	if err != nil {
 		return c.PublicCharacter{}, err
 	}
-	return c.PublicCharacter{ID: r.ID, Name: r.Name, Level: r.Level, Class: r.Class, Appearance: dressed(r.Appearance, a.equipment(ctx, r.ID))}, nil
+	eq := a.equipment(ctx, r.ID)
+	return c.PublicCharacter{ID: r.ID, Name: r.Name, Level: r.Level, Class: r.Class, Appearance: dressed(r.Appearance, eq), FX: eq.FX}, nil
 }
 
 func (a *app) allocate(ctx context.Context, req c.AllocateReq) (c.Character, error) {

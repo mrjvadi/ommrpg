@@ -324,6 +324,8 @@ func (a *app) bonuses(ctx context.Context, req c.ItemActionReq) (c.BonusesResp, 
 		}
 		if s.Item.Slot == items.Weapon {
 			b.WeaponKind, b.Range, b.Cooldown = s.Item.Kind, s.Item.Range, s.Item.Cooldown
+			b.Element = s.Item.Element
+			out.FX = items.WeaponFX(s.Item, s.State)
 		}
 		if ap := s.Item.Appearance; ap != nil {
 			out.Looks = append(out.Looks, c.Layer{Item: ap.Item, Variant: ap.Variant, Colors: ap.Colors})
@@ -360,6 +362,8 @@ func addStat(b *progression.Bonuses, stat string, v float64) {
 		b.XPPct += v
 	case items.StatMagicFind:
 		b.MagicFind += v
+	case items.StatElement:
+		b.ElementDmg += int(v)
 	}
 }
 

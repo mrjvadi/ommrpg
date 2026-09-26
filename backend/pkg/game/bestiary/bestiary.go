@@ -53,6 +53,44 @@ var families = []familyDef{
 	{Spirit, []world.Biome{world.BTundra, world.BTaiga, world.BDungeon}, []string{"Spirit", "Wraith", "Shade", "Phantom"}, 0.8, 1.3, 0.7, true, 2.0},
 }
 
+// familyResist: damage multipliers per element (missing = 1.0).
+var familyResist = map[Family]map[string]float64{
+	Plant:     {"fire": 1.6, "poison": 0.5, "frost": 1.2},
+	Undead:    {"holy": 1.8, "shadow": 0.4, "poison": 0.3},
+	Beast:     {"fire": 1.2, "poison": 1.3},
+	Insect:    {"fire": 1.4, "frost": 1.3},
+	Golem:     {"lightning": 1.5, "poison": 0.2, "fire": 0.7},
+	Slime:     {"lightning": 1.4, "frost": 1.3, "poison": 0.5},
+	Bird:      {"lightning": 1.5, "frost": 1.2},
+	Serpent:   {"frost": 1.5, "poison": 0.4},
+	Imp:       {"holy": 1.6, "fire": 0.3, "frost": 1.4},
+	Spirit:    {"holy": 1.5, "shadow": 1.3, "poison": 0.2},
+	Elemental: {},
+}
+
+var opposite = map[string]string{"fire": "frost", "frost": "fire", "holy": "shadow", "shadow": "holy", "lightning": "poison", "poison": "lightning"}
+
+// Resist returns the damage multiplier of an element against a species.
+// Elemental-aligned species are nearly immune to their own element and
+// weak to its opposite.
+func (s Species) Resist(element string) float64 {
+	if element == "" {
+		return 1
+	}
+	if s.Element != "" {
+		if element == s.Element {
+			return 0.2
+		}
+		if opposite[s.Element] == element {
+			return 1.8
+		}
+	}
+	if m, ok := familyResist[s.Family][element]; ok {
+		return m
+	}
+	return 1
+}
+
 // Species is one generated monster type.
 type Species struct {
 	ID         int           `json:"id"`
@@ -70,6 +108,8 @@ type Species struct {
 	Hue        float64       `json:"hue"`
 	Hue2       float64       `json:"hue2"`
 	Big        bool          `json:"big"`
+	// Element alignment (elementals, imps and spirits only).
+	Element string `json:"element,omitempty"`
 }
 
 const PerFamily = 4
@@ -111,6 +151,17 @@ func ForWorld(worldSeed uint64) []Species {
 				Big:        r.Chance(0.2),
 			}
 			s.XPMul = (s.HPMul + s.AtkMul + s.DefMul) / 3
+			if f.fam == Elemental || f.fam == Imp || f.fam == Spirit {
+				er := seed.New(seed.Derive(worldSeed, "species-element", id))
+				switch f.fam {
+				case Imp:
+					s.Element = seed.Pick(er, []string{"fire", "shadow"})
+				case Spirit:
+					s.Element = seed.Pick(er, []string{"frost", "shadow", "holy"})
+				default:
+					s.Element = seed.Pick(er, []string{"fire", "frost", "lightning", "poison"})
+				}
+			}
 			if s.Big {
 				s.HPMul *= 1.4
 				s.XPMul *= 1.3
