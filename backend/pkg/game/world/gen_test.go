@@ -2,6 +2,7 @@ package world
 
 import (
 	"testing"
+	"time"
 )
 
 func testParams() Params { return Params{ID: 1, Seed: 123456789, SizeChunks: 64} }
@@ -83,5 +84,35 @@ func BenchmarkChunk(b *testing.B) {
 	p := testParams()
 	for i := 0; i < b.N; i++ {
 		p.ChunkTerrain(i%64, (i/64)%64)
+	}
+}
+
+func TestRiversFlowToSea(t *testing.T) {
+	p := Params{ID: 1, Seed: 555, SizeChunks: 64}
+	start := time.Now()
+	net := p.rivers()
+	t.Logf("river network for %dx%d cells in %v", net.n, net.n, time.Since(start))
+	rivers := 0
+	for i, f := range net.flow {
+		if f < riverThreshold {
+			continue
+		}
+		rivers++
+		// following parents always terminates (a tree rooted at the sea)
+		steps, c := 0, int32(i)
+		for c >= 0 && steps < len(net.flow) {
+			c = net.parent[c]
+			steps++
+		}
+		if steps >= len(net.flow) {
+			t.Fatal("drainage cycle")
+		}
+	}
+	if rivers < 50 {
+		t.Fatalf("too few river cells: %d", rivers)
+	}
+	sx, sy := p.Spawn()
+	if !p.Walkable(sx+1, sy) {
+		t.Fatal("plaza broken by rivers")
 	}
 }

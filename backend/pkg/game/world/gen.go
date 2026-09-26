@@ -12,6 +12,9 @@ import (
 	"github.com/mrjvadi/ommrpg/backend/pkg/seed"
 )
 
+// GenVersion changes whenever generator output changes; caches key on it.
+const GenVersion = 2
+
 const (
 	ChunkSize = 32
 	// SafeRadius around the spawn point: no monsters, no dungeon entrances.
@@ -139,6 +142,9 @@ var props = map[Biome][]propRule{
 // baseTile is terrain + natural props, before chunk features and the plaza.
 func (p Params) baseTile(x, y int) (Ground, Object, Biome) {
 	s := p.SampleAt(x, y)
+	if s.Biome != BOcean && s.Biome != BBeach && p.InBounds(x, y) && p.riverAt(x, y) > 0 {
+		return GShallow, ONone, s.Biome
+	}
 	rules, ok := props[s.Biome]
 	if !ok {
 		return s.Ground, ONone, s.Biome

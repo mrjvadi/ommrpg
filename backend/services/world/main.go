@@ -107,6 +107,7 @@ func (a *app) load(ctx context.Context, id int) (c.WorldInfo, error) {
 	}
 	p.Seed, _ = strconv.ParseUint(seedS, 10, 64)
 	w := info(p)
+	go p.Warm()
 	a.worlds.Put(id, w)
 	return w, nil
 }
@@ -166,7 +167,7 @@ func (a *app) chunkRaw(ctx context.Context, req c.ChunkReq) (json.RawMessage, er
 	if req.CX < 0 || req.CY < 0 || req.CX >= w.SizeChunks || req.CY >= w.SizeChunks {
 		return nil, apperr.New(apperr.NotFound, "chunk out of world")
 	}
-	key := fmt.Sprintf("chunk:%d:%d:%d", req.WorldID, req.CX, req.CY)
+	key := fmt.Sprintf("chunk:v%d:%d:%d:%d", world.GenVersion, req.WorldID, req.CX, req.CY)
 	if v, ok := a.chunks.Get(key); ok {
 		return v, nil
 	}

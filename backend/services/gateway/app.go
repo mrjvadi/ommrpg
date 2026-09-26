@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httputil"
@@ -20,6 +19,7 @@ import (
 	"github.com/mrjvadi/ommrpg/backend/pkg/centrifugo"
 	c "github.com/mrjvadi/ommrpg/backend/pkg/contracts"
 	"github.com/mrjvadi/ommrpg/backend/pkg/game/world"
+	"github.com/mrjvadi/ommrpg/backend/pkg/hot"
 	"github.com/mrjvadi/ommrpg/backend/pkg/httpx"
 	"github.com/mrjvadi/ommrpg/backend/pkg/zones"
 )
@@ -101,18 +101,15 @@ func (a *app) authed(needCharacter bool, h http.HandlerFunc) http.Handler {
 	})
 }
 
-// rateLimit is a 1-second fixed window counter in Dragonfly.
+// rateLimit runs GCRA inside Dragonfly (pkg/hot gcra.lua): a smooth rate
+// of perSecond with a burst of the same size, shared by every replica.
 func (a *app) rateLimit(ctx context.Context, key string, perSecond int) error {
-	k := fmt.Sprintf("rl:%s:%d", key, time.Now().Unix())
-	n, err := a.rdb.Incr(ctx, k).Result()
+	l, err := hot.Allow(ctx, a.rdb, "rl:"+key, perSecond, 1000, perSecond, 1)
 	if err != nil {
 		return nil // fail open: rate limiting must not take the game down
 	}
-	if n == 1 {
-		a.rdb.Expire(ctx, k, 2*time.Second)
-	}
-	if n > int64(perSecond) {
-		return apperr.New(apperr.RateLimited, "slow down")
+	if !l.Allowed {
+		return apperr.New(apperr.RateLimited, "slow down (retry in %dms)", l.RetryAfter)
 	}
 	return nil
 }

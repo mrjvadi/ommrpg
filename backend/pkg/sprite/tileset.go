@@ -30,7 +30,7 @@ var groundBase = map[world.Ground]color.NRGBA{
 	world.GRock: {122, 118, 112, 255}, world.GAsh: {74, 66, 66, 255},
 	world.GPath: {188, 162, 116, 255}, world.GDungeonFloor: {94, 88, 84, 255},
 	world.GDungeonWall: {50, 46, 56, 255}, world.GIce: {182, 222, 240, 255},
-	world.GLava: {222, 84, 24, 255},
+	world.GLava: {222, 84, 24, 255}, world.GShallow: {74, 142, 204, 255},
 }
 
 // TilesetInfo describes the atlas layout without rendering it.
@@ -85,7 +85,7 @@ func groundTile(s uint64, g world.Ground) *image.NRGBA {
 				c.ellipse(r.FRange(6, 26), r.FRange(6, 26), r.FRange(2, 4), r.FRange(1, 2), color.NRGBA{60, 84, 70, 255}, false)
 			}
 		}
-	case world.GWater, world.GDeepWater:
+	case world.GWater, world.GDeepWater, world.GShallow:
 		for i := 0; i < 7; i++ {
 			x, y := r.Intn(TileSize-6), r.Intn(TileSize)
 			for k := 0; k < r.Range(3, 6); k++ {

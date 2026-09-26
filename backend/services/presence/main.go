@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/ommrpg/backend/pkg/centrifugo"
 	"github.com/mrjvadi/ommrpg/backend/pkg/config"
 	c "github.com/mrjvadi/ommrpg/backend/pkg/contracts"
+	"github.com/mrjvadi/ommrpg/backend/pkg/metrics"
 	"github.com/mrjvadi/ommrpg/backend/pkg/store"
 	"github.com/mrjvadi/ommrpg/backend/pkg/svc"
 	"github.com/mrjvadi/ommrpg/backend/pkg/zones"
@@ -25,7 +26,7 @@ func main() {
 		s.Fatal("nats", err)
 	}
 	defer b.Close()
-	a := newApp(rdb, b, zones.New(b), centrifugo.New(config.String("CENTRIFUGO_API_URL", "http://localhost:8000"), config.String("CENTRIFUGO_API_KEY", "dev-api-key")), s.Log)
+	a := newApp(rdb, b, zones.New(b), centrifugo.New(config.String("CENTRIFUGO_API_URL", "http://localhost:8000"), config.String("CENTRIFUGO_API_KEY", "dev-api-key")), metrics.New(s.Ctx, rdb), s.Log)
 	for _, err := range []error{
 		bus.Handle(b, c.PresenceEnter, a.enter),
 		bus.Handle(b, c.PresenceMove, a.move),
@@ -33,6 +34,7 @@ func main() {
 		bus.Handle(b, c.PresenceNearby, a.nearby),
 		bus.Handle(b, c.PresenceTeleport, a.teleport),
 		bus.Handle(b, c.PresenceLook, a.look),
+		bus.Handle(b, c.PresenceStatsSubject, a.statsHandler),
 	} {
 		if err != nil {
 			s.Fatal("subscribe", err)

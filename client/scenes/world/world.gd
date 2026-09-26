@@ -30,6 +30,7 @@ var path: Array = [] # tiles to auto-walk (tap-to-move)
 var path_target := "" # monster to attack when the path ends
 
 var _move_inflight := false
+var _move_seq := 0
 var _last_sent := Vector2(-1, -1)
 var _last_send_t := 0.0
 var _next_attack_t := 0.0
@@ -220,14 +221,17 @@ func _upsert_remote(id: String, p: Vector2, dir: String) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if remotes.has(id):
 		var r: Dictionary = remotes[id]
-		r.target = p
+		var buf: Array = r.buf
+		buf.append([now, p])
+		while buf.size() > 12:
+			buf.pop_front()
 		r.seen = now
-		r.node.dir = dir
+		r.dir = dir
 		return
 	var node := LpcSprite.new()
 	node.position = p * TILE
 	map.entities.add_child(node)
-	remotes[id] = {"node": node, "target": p, "seen": now}
+	remotes[id] = {"node": node, "buf": [[now, p]], "seen": now, "dir": dir}
 	_load_remote_look(id)
 
 func _load_remote_look(id: String) -> void:
@@ -269,16 +273,42 @@ func _process(delta: float) -> void:
 	for id in remotes.keys():
 		var r: Dictionary = remotes[id]
 		var node: LpcSprite = r.node
-		var goal: Vector2 = r.target * TILE
-		node.moving = node.position.distance_to(goal) > 1.5
+		var goal: Vector2 = _interpolate(r.buf, now - INTERP_DELAY) * TILE
+		var step := goal - node.position
+		node.moving = step.length() > 0.4
 		if node.moving:
-			node.face_towards(goal - node.position)
-		node.position = node.position.lerp(goal, minf(1.0, delta * 10.0))
+			node.face_towards(step)
+		else:
+			node.dir = str(r.dir)
+		node.position = goal
 		if now - float(r.seen) > 100.0:
 			node.queue_free()
 			remotes.erase(id)
 	if Cfg.autotest:
 		_autotest(now)
+
+## Remote players are rendered slightly in the past and interpolated
+## between received snapshots (entity interpolation), which hides network
+## jitter; short gaps are extrapolated from the last velocity.
+const INTERP_DELAY := 0.12
+const MAX_EXTRAPOLATE := 0.25
+
+func _interpolate(buf: Array, t: float) -> Vector2:
+	if buf.size() == 1 or t <= float(buf[0][0]):
+		return buf[0][1]
+	for i in range(buf.size() - 1, 0, -1):
+		var a: Array = buf[i - 1]
+		var b: Array = buf[i]
+		if t >= float(a[0]) and t <= float(b[0]):
+			var span := maxf(0.001, float(b[0]) - float(a[0]))
+			return (a[1] as Vector2).lerp(b[1], (t - float(a[0])) / span)
+	var last: Array = buf[buf.size() - 1]
+	var prev: Array = buf[buf.size() - 2]
+	var dt := maxf(0.001, float(last[0]) - float(prev[0]))
+	var over := minf(t - float(last[0]), MAX_EXTRAPOLATE)
+	if dt > 0.5:
+		return last[1]
+	return (last[1] as Vector2) + ((last[1] as Vector2) - (prev[1] as Vector2)) / dt * over
 
 func _input_vector() -> Vector2:
 	var v := Vector2.ZERO
@@ -334,7 +364,8 @@ func _send_move(now: float) -> void:
 	_move_inflight = true
 	_last_send_t = now
 	var sent := pos
-	var r := await Realtime.call_rpc("move", {"x": sent.x, "y": sent.y, "dir": player.dir, "anim": "walk" if player.moving else "idle"})
+	_move_seq += 1
+	var r := await Realtime.call_rpc("move", {"x": sent.x, "y": sent.y, "dir": player.dir, "anim": "walk" if player.moving else "idle", "seq": _move_seq})
 	_move_inflight = false
 	if not r.ok:
 		return
@@ -574,42 +605,14 @@ func _tap(tile_pos: Vector2) -> void:
 		return
 	_walk_to(Vector2i(floori(tile_pos.x), floori(tile_pos.y)), false)
 
-## A* over the locally known map; `adjacent` stops next to the goal.
+## Path over the locally known map (see Pathfinder: heap A* + smoothing).
 func _walk_to(goal: Vector2i, adjacent: bool) -> bool:
 	var start := Vector2i(floori(pos.x), floori(pos.y))
-	var came := {start: start}
-	var cost := {start: 0}
-	var open := [start]
-	var found := Vector2i(-1, -1)
-	var limit := 4000
-	while not open.is_empty() and limit > 0:
-		limit -= 1
-		var bi := 0
-		for i in open.size():
-			var a: Vector2i = open[i]
-			var b: Vector2i = open[bi]
-			if cost[a] + absi(a.x - goal.x) + absi(a.y - goal.y) < cost[b] + absi(b.x - goal.x) + absi(b.y - goal.y):
-				bi = i
-		var cur: Vector2i = open[bi]
-		open.remove_at(bi)
-		var dist := absi(cur.x - goal.x) + absi(cur.y - goal.y)
-		if (adjacent and dist <= 1) or (not adjacent and dist == 0):
-			found = cur
-			break
-		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-			var nx: Vector2i = cur + d
-			if came.has(nx) or not map.walkable_point(Vector2(nx) + Vector2(0.5, 0.5)):
-				continue
-			came[nx] = cur
-			cost[nx] = cost[cur] + 1
-			open.append(nx)
-	if found.x == -1 and found.y == -1:
+	var walk := func(t: Vector2i) -> bool: return map.walkable_point(Vector2(t) + Vector2(0.5, 0.5))
+	var p := Pathfinder.find(start, goal, adjacent, walk)
+	if p.is_empty() and not (adjacent and maxi(absi(start.x - goal.x), absi(start.y - goal.y)) <= 1):
 		return false
-	path.clear()
-	var n := found
-	while n != start:
-		path.push_front(Vector2(n) + Vector2(0.5, 0.5))
-		n = came[n]
+	path = p
 	return true
 
 # ---------------------------------------------------------------- autotest

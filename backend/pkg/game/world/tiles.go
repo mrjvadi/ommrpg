@@ -21,10 +21,11 @@ const (
 	GDungeonWall
 	GIce
 	GLava
+	GShallow // river water: walkable
 	GroundCount
 )
 
-var groundNames = [...]string{"deep_water", "water", "sand", "grass", "forest", "dirt", "snow", "swamp", "rock", "ash", "path", "dungeon_floor", "dungeon_wall", "ice", "lava"}
+var groundNames = [...]string{"deep_water", "water", "sand", "grass", "forest", "dirt", "snow", "swamp", "rock", "ash", "path", "dungeon_floor", "dungeon_wall", "ice", "lava", "shallow_water"}
 
 func (g Ground) String() string {
 	if int(g) < len(groundNames) {

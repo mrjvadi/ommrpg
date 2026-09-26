@@ -22,6 +22,7 @@ var groundColors = map[world.Ground]color.RGBA{
 	world.GSnow: {235, 240, 245, 255}, world.GSwamp: {80, 100, 70, 255},
 	world.GRock: {120, 115, 110, 255}, world.GAsh: {70, 60, 60, 255},
 	world.GPath: {190, 170, 120, 255}, world.GIce: {180, 220, 240, 255},
+	world.GShallow: {80, 150, 210, 255},
 }
 
 func main() {

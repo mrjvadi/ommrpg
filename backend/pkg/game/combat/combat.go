@@ -10,9 +10,11 @@ import (
 
 // Hit is the outcome of one attack.
 type Hit struct {
-	Damage int     `json:"damage"`
-	Crit   bool    `json:"crit"`
-	Roll   float64 `json:"roll"`
+	Damage  int     `json:"damage"`
+	Crit    bool    `json:"crit"`
+	Roll    float64 `json:"roll"`
+	Element string  `json:"element,omitempty"`
+	Bonus   int     `json:"bonus,omitempty"` // elemental part of Damage
 }
 
 // Resolve computes damage of attack vs defense.

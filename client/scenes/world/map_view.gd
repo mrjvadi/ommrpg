@@ -6,9 +6,9 @@ extends Node2D
 const TILE := 32
 const CHUNK := 32
 const GROUND_VARIANTS := 4
-const GROUND_COUNT := 15
+const GROUND_COUNT := 16
 const OBJECT_COUNT := 18
-const OBJECT_ROW := 15
+const OBJECT_ROW := 16
 const WALL := 12
 # ground ids that cannot be walked on: deep water, water, dungeon wall, lava
 const BLOCKED_GROUND := [0, 1, 12, 14]
@@ -18,7 +18,7 @@ const INTERACTIVE := [10, 11, 12, 13, 15, 16]
 const GROUND_COLORS := [
 	Color("183e7a"), Color("2c68b6"), Color("dec892"), Color("58a048"), Color("347238"),
 	Color("8e704a"), Color("e8eef4"), Color("506444"), Color("7a7670"), Color("4a4242"),
-	Color("bca274"), Color("5e5854"), Color("2e2a36"), Color("b6def0"), Color("de5418"),
+	Color("bca274"), Color("5e5854"), Color("2e2a36"), Color("b6def0"), Color("de5418"), Color("4a8ecc"),
 ]
 
 var ground: TileMapLayer

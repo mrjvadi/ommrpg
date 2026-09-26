@@ -48,6 +48,7 @@ func (r *Resolver) World(ctx context.Context, id int) (c.WorldInfo, error) {
 		return w, err
 	}
 	r.worlds.Put(id, w)
+	go w.Params.Warm()
 	return w, nil
 }
 

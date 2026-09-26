@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -20,7 +19,9 @@ import (
 	"github.com/mrjvadi/ommrpg/backend/pkg/game/combat"
 	"github.com/mrjvadi/ommrpg/backend/pkg/game/items"
 	"github.com/mrjvadi/ommrpg/backend/pkg/game/zone"
+	"github.com/mrjvadi/ommrpg/backend/pkg/hot"
 	"github.com/mrjvadi/ommrpg/backend/pkg/lru"
+	"github.com/mrjvadi/ommrpg/backend/pkg/metrics"
 	"github.com/mrjvadi/ommrpg/backend/pkg/seed"
 	"github.com/mrjvadi/ommrpg/backend/pkg/zones"
 )
@@ -33,10 +34,11 @@ type app struct {
 	secret   uint64
 	log      *slog.Logger
 	profiles *lru.Cache[string, c.CombatProfile]
+	stats    *metrics.Counters
 }
 
-func newApp(rdb *redis.Client, b *bus.Bus, z *zones.Resolver, cf *centrifugo.Client, secret uint64, log *slog.Logger) *app {
-	return &app{rdb: rdb, bus: b, zones: z, cf: cf, secret: secret, log: log, profiles: lru.New[string, c.CombatProfile](8192, 3*time.Second)}
+func newApp(rdb *redis.Client, b *bus.Bus, z *zones.Resolver, cf *centrifugo.Client, secret uint64, m *metrics.Counters, log *slog.Logger) *app {
+	return &app{rdb: rdb, bus: b, zones: z, cf: cf, secret: secret, log: log, stats: m, profiles: lru.New[string, c.CombatProfile](8192, 3*time.Second)}
 }
 
 func (a *app) profile(ctx context.Context, id string) (c.CombatProfile, error) {
@@ -52,59 +54,13 @@ func (a *app) profile(ctx context.Context, id string) (c.CombatProfile, error) {
 
 func monKey(z, id string) string { return "mon:" + z + ":" + id }
 
-// damageScript applies damage to a monster exactly once. It returns
-// {state, hp, deadUntil}: state 0 = hit, 1 = killed by this hit, 2 = already dead.
-var damageScript = redis.NewScript(`
-local key = KEYS[1]
-local now = tonumber(ARGV[1])
-local maxhp = tonumber(ARGV[2])
-local dmg = tonumber(ARGV[3])
-local respawn = tonumber(ARGV[4])
-local ttl = tonumber(ARGV[5])
-local dead = tonumber(redis.call('HGET', key, 'dead_until') or '0')
-if dead == -1 or dead > now then
-  return {2, 0, dead}
-end
-local hp = tonumber(redis.call('HGET', key, 'hp') or '-1')
-if hp < 0 or dead ~= 0 then hp = maxhp end
-hp = hp - dmg
-if hp <= 0 then
-  local untilv = -1
-  if respawn > 0 then untilv = now + respawn end
-  redis.call('HSET', key, 'hp', maxhp, 'dead_until', untilv)
-  redis.call('EXPIRE', key, ttl)
-  return {1, 0, untilv}
-end
-redis.call('HSET', key, 'hp', hp, 'dead_until', 0)
-redis.call('EXPIRE', key, ttl)
-return {0, hp, 0}
-`)
-
-type vitals struct {
-	HP int   `json:"hp"`
-	At int64 `json:"at"`
-}
-
 func hpKey(id string) string { return "hp:" + id }
 
-// playerHP returns current hp including passive regeneration (2%/s).
-func (a *app) playerHP(ctx context.Context, id string, max int) (int, error) {
-	raw, err := a.rdb.Get(ctx, hpKey(id)).Bytes()
-	if errors.Is(err, redis.Nil) {
-		return max, nil
-	}
-	if err != nil {
-		return 0, err
-	}
-	var v vitals
-	_ = json.Unmarshal(raw, &v)
-	regen := float64(time.Now().UnixMilli()-v.At) / 1000 * float64(max) * 0.02
-	return int(math.Min(float64(max), float64(v.HP)+regen)), nil
-}
+const regenPerSecond = 0.02 // fraction of max HP
 
-func (a *app) setHP(ctx context.Context, id string, hp int) error {
-	raw, _ := json.Marshal(vitals{HP: hp, At: time.Now().UnixMilli()})
-	return a.rdb.Set(ctx, hpKey(id), raw, 24*time.Hour).Err()
+// playerHP applies a delta (0 to just read) with lazy regeneration.
+func (a *app) playerHP(ctx context.Context, id string, max, delta int) (int, bool, error) {
+	return hot.Vitals(ctx, a.rdb, hpKey(id), max, delta, regenPerSecond, 24*3600)
 }
 
 func (a *app) attack(ctx context.Context, req c.AttackReq) (c.AttackResp, error) {
@@ -129,52 +85,41 @@ func (a *app) attack(ctx context.Context, req c.AttackReq) (c.AttackResp, error)
 	if !combat.InRange(pos.X, pos.Y, mx, my, d.Range) {
 		return c.AttackResp{}, apperr.New(apperr.Invalid, "target out of range")
 	}
-	cdMs := int64(d.Cooldown * 1000 * 0.9) // small tolerance for latency jitter
-	if ok, _ := a.rdb.SetNX(ctx, "cd:"+req.CharacterID, 1, time.Duration(cdMs)*time.Millisecond).Result(); !ok {
-		return c.AttackResp{}, apperr.New(apperr.Cooldown, "attack is on cooldown")
-	}
 	st := bestiary.StatsFor(species, spawn.Level, spawn.Rank)
 	n, _ := a.rdb.Incr(ctx, "atkseq:"+req.CharacterID).Result()
-	hit := combat.Resolve(seed.Derive(a.secret, "attack", req.CharacterID, n), d.Attack, st.Defense, d.CritChance)
-	now := time.Now().UnixMilli()
-	respawnMs := int64(st.Respawn) * 1000
-	res, err := damageScript.Run(ctx, a.rdb, []string{monKey(pos.Zone, spawn.ID)}, now, st.MaxHP, hit.Damage, respawnMs, 6*3600).Int64Slice()
+	hit := a.resolveHit(seed.Derive(a.secret, "attack", req.CharacterID, n), prof, species, st)
+	cdMs := int64(d.Cooldown * 1000 * 0.9) // small tolerance for latency jitter
+	res, err := hot.Attack(ctx, a.rdb, monKey(pos.Zone, spawn.ID), "threat:"+pos.Zone+":"+spawn.ID, "cd:"+req.CharacterID,
+		st.MaxHP, hit.Damage, int64(st.Respawn)*1000, 6*3600, req.CharacterID, cdMs)
 	if err != nil {
 		return c.AttackResp{}, err
 	}
-	if res[0] == 2 {
+	switch res.State {
+	case hot.OnCooldown:
+		return c.AttackResp{}, apperr.New(apperr.Cooldown, "attack is on cooldown (%dms)", res.CooldownMs)
+	case hot.AlreadyDead:
 		return c.AttackResp{}, apperr.New(apperr.Conflict, "target is already dead")
 	}
-	maxHP := d.MaxHP
-	php, err := a.playerHP(ctx, req.CharacterID, maxHP)
-	if err != nil {
-		return c.AttackResp{}, err
-	}
+	a.stats.Inc("attacks", 1)
+	heal := 0
 	if d.LifeSteal > 0 {
-		php = int(math.Min(float64(maxHP), float64(php)+float64(hit.Damage)*d.LifeSteal))
+		heal = int(float64(hit.Damage) * d.LifeSteal)
 	}
-	out := c.AttackResp{Hit: hit, TargetHP: int(res[1]), TargetMax: st.MaxHP, PlayerMax: maxHP}
+	out := c.AttackResp{Hit: hit, TargetHP: int(res.HP), TargetMax: st.MaxHP}
 	ax, ay := z.Area(mx, my)
 	channel := z.Channel(ax, ay)
-	if res[0] == 1 {
+	counterDmg := 0
+	if res.State == hot.Killed {
 		out.Killed = true
-		xp := float64(st.XP) * prof.Hidden.XPMultiplier() * (1 + d.XPBonus)
-		if gap := prof.Level - spawn.Level; gap > 5 {
-			xp *= math.Max(0.1, 1-0.15*float64(gap-5)) // farming weak monsters pays little
+		a.stats.Inc("kills", 1)
+		a.rdb.ZIncrBy(ctx, "lb:kills", 1, req.CharacterID)
+		shares := a.rewardParticipants(ctx, res, req.CharacterID, spawn, species, st, pos.Zone)
+		if me, ok := shares[req.CharacterID]; ok {
+			out.XP, out.Loot = me.XP, &me.Loot
 		}
-		out.XP = int64(math.Max(1, math.Round(xp)))
-		loot := items.RollLoot(seed.Derive(a.secret, "loot", pos.Zone, spawn.ID, res[2]), spawn.Level, string(spawn.Rank), prof.Hidden.Luck()+d.MagicFind)
-		out.Loot = &loot
-		ev := c.MonsterKilledEv{
-			CharacterID: req.CharacterID, MonsterID: spawn.ID, Species: species.ID, SpeciesName: species.Name,
-			Rank: spawn.Rank, Level: spawn.Level, Zone: pos.Zone, XP: out.XP, WeaponKind: d.WeaponKind, Loot: loot,
-		}
-		if err := a.bus.Publish(ctx, c.EvMonsterKilled, fmt.Sprintf("kill:%s:%s:%d", pos.Zone, spawn.ID, res[2]), ev); err != nil {
-			a.log.Error("publish kill", "err", err)
-		}
-		_ = a.cf.Publish(ctx, channel, map[string]any{"t": "die", "id": spawn.ID, "until": res[2], "by": req.CharacterID, "dmg": hit.Damage, "crit": hit.Crit})
+		_ = a.cf.Publish(ctx, channel, map[string]any{"t": "die", "id": spawn.ID, "until": res.DeadUntil, "by": req.CharacterID, "dmg": hit.Damage, "crit": hit.Crit, "el": hit.Element})
 	} else {
-		_ = a.cf.Publish(ctx, channel, map[string]any{"t": "hit", "id": spawn.ID, "hp": res[1], "max": st.MaxHP, "by": req.CharacterID, "dmg": hit.Damage, "crit": hit.Crit})
+		_ = a.cf.Publish(ctx, channel, map[string]any{"t": "hit", "id": spawn.ID, "hp": res.HP, "max": st.MaxHP, "by": req.CharacterID, "dmg": hit.Damage, "crit": hit.Crit, "el": hit.Element})
 		// counterattack: the monster strikes back when the attacker is in its reach
 		if combat.InRange(pos.X, pos.Y, mx, my, st.Range+0.5) {
 			cd := time.Duration(st.Cooldown*1000) * time.Millisecond
@@ -182,20 +127,67 @@ func (a *app) attack(ctx context.Context, req c.AttackReq) (c.AttackResp, error)
 				m, _ := a.rdb.Incr(ctx, "defseq:"+req.CharacterID).Result()
 				counter := combat.Resolve(seed.Derive(a.secret, "counter", req.CharacterID, m), st.Attack, d.Defense, 0.05)
 				out.Counter = &counter
-				php -= counter.Damage
+				counterDmg = counter.Damage
 			}
 		}
 	}
-	if php <= 0 {
-		out.Died = true
-		php = maxHP
-		a.onDeath(ctx, req.CharacterID, prof, z, species.Name)
-	}
-	if err := a.setHP(ctx, req.CharacterID, php); err != nil {
+	php, died, err := a.playerHP(ctx, req.CharacterID, d.MaxHP, heal-counterDmg)
+	if err != nil {
 		return out, err
 	}
-	out.PlayerHP = php
+	out.PlayerHP, out.PlayerMax = php, d.MaxHP
+	if died {
+		out.Died = true
+		a.onDeath(ctx, req.CharacterID, prof, z, species.Name)
+	}
 	return out, nil
+}
+
+type share struct {
+	XP   int64
+	Loot items.Loot
+}
+
+// rewardParticipants splits a kill fairly: everyone who dealt at least 10%
+// of the monster's HP (and always the killer) gets XP proportional to damage
+// plus a group bonus (0.3 + 0.7*share), and their own personal loot roll
+// seeded by the kill and the participant, so nobody can steal loot and a
+// replayed event never pays twice.
+func (a *app) rewardParticipants(ctx context.Context, res hot.AttackResult, killer string, spawn bestiary.Spawn, species bestiary.Species, st bestiary.Stats, zoneID string) map[string]share {
+	var total int64
+	for _, d := range res.Threat {
+		total += d
+	}
+	out := map[string]share{}
+	if total <= 0 {
+		return out
+	}
+	for who, dmg := range res.Threat {
+		frac := float64(dmg) / float64(total)
+		if frac < 0.1 && who != killer {
+			continue
+		}
+		prof, err := a.profile(ctx, who)
+		if err != nil {
+			continue
+		}
+		xp := float64(st.XP) * (0.3 + 0.7*frac) * prof.Hidden.XPMultiplier() * (1 + prof.Derived.XPBonus)
+		if gap := prof.Level - spawn.Level; gap > 5 {
+			xp *= math.Max(0.1, 1-0.15*float64(gap-5)) // farming weak monsters pays little
+		}
+		sh := share{XP: int64(math.Max(1, math.Round(xp)))}
+		sh.Loot = items.RollLoot(seed.Derive(a.secret, "loot", zoneID, spawn.ID, res.DeadUntil, who), spawn.Level, string(spawn.Rank), prof.Hidden.Luck()+prof.Derived.MagicFind)
+		out[who] = sh
+		ev := c.MonsterKilledEv{
+			CharacterID: who, MonsterID: spawn.ID, Species: species.ID, SpeciesName: species.Name,
+			Rank: spawn.Rank, Level: spawn.Level, Zone: zoneID, XP: sh.XP, WeaponKind: prof.Derived.WeaponKind, Loot: sh.Loot,
+			DamageShare: frac,
+		}
+		if err := a.bus.Publish(ctx, c.EvMonsterKilled, fmt.Sprintf("kill:%s:%s:%d:%s", zoneID, spawn.ID, res.DeadUntil, who), ev); err != nil {
+			a.log.Error("publish kill", "err", err)
+		}
+	}
+	return out
 }
 
 // onDeath sends the character back to safety: out of a dungeon to its
@@ -284,6 +276,12 @@ func (a *app) player(ctx context.Context, req c.CharacterReq) (c.PlayerVitals, e
 	if err != nil {
 		return c.PlayerVitals{}, err
 	}
-	hp, err := a.playerHP(ctx, req.CharacterID, prof.Derived.MaxHP)
+	hp, _, err := a.playerHP(ctx, req.CharacterID, prof.Derived.MaxHP, 0)
 	return c.PlayerVitals{HP: hp, MaxHP: prof.Derived.MaxHP}, err
+}
+
+// resolveHit computes the damage of one attack (elements are added by the
+// weapon effects system).
+func (a *app) resolveHit(s uint64, prof c.CombatProfile, sp bestiary.Species, st bestiary.Stats) combat.Hit {
+	return combat.Resolve(s, prof.Derived.Attack, st.Defense, prof.Derived.CritChance)
 }

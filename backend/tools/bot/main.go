@@ -88,6 +88,16 @@ type bot struct {
 // ---------------------------------------------------------------- http
 
 func (b *bot) http(method, path string, body, out any) error {
+	for attempt := 0; ; attempt++ {
+		err := b.httpOnce(method, path, body, out)
+		if err == nil || !strings.Contains(err.Error(), ": 429 ") || attempt >= 20 {
+			return err
+		}
+		time.Sleep(150 * time.Millisecond) // rate limited: back off and retry
+	}
+}
+
+func (b *bot) httpOnce(method, path string, body, out any) error {
 	var rd io.Reader
 	if body != nil {
 		raw, _ := json.Marshal(body)
@@ -437,6 +447,9 @@ func (b *bot) huntOne() error {
 			return errors.New("bot died")
 		}
 		if res.Killed {
+			if res.Loot == nil {
+				return errors.New("killer received no reward")
+			}
 			b.log.Printf("killed %s: +%d xp, loot: %d gold, %d items (hp %d/%d)", target.ID, res.XP, res.Loot.Gold, len(res.Loot.Items), res.PlayerHP, res.PlayerMax)
 			return b.expect("loot", 5*time.Second)
 		}

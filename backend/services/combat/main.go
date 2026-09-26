@@ -8,6 +8,7 @@ import (
 	"github.com/mrjvadi/ommrpg/backend/pkg/centrifugo"
 	"github.com/mrjvadi/ommrpg/backend/pkg/config"
 	c "github.com/mrjvadi/ommrpg/backend/pkg/contracts"
+	"github.com/mrjvadi/ommrpg/backend/pkg/metrics"
 	"github.com/mrjvadi/ommrpg/backend/pkg/seed"
 	"github.com/mrjvadi/ommrpg/backend/pkg/store"
 	"github.com/mrjvadi/ommrpg/backend/pkg/svc"
@@ -30,7 +31,7 @@ func main() {
 	}
 	a := newApp(rdb, b, zones.New(b),
 		centrifugo.New(config.String("CENTRIFUGO_API_URL", "http://localhost:8000"), config.String("CENTRIFUGO_API_KEY", "dev-api-key")),
-		seed.FromString(config.String("GAME_SECRET", "dev-game-secret")), s.Log)
+		seed.FromString(config.String("GAME_SECRET", "dev-game-secret")), metrics.New(s.Ctx, rdb), s.Log)
 	for _, err := range []error{
 		bus.Handle(b, c.CombatAttack, a.attack),
 		bus.Handle(b, c.CombatMonsters, a.monsters),

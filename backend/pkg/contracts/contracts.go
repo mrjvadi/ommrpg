@@ -285,7 +285,14 @@ const (
 	PresenceTeleport = "presence.teleport"
 	// PresenceLook tells nearby players to refresh someone's appearance.
 	PresenceLook = "presence.look"
+	// PresenceStatsSubject reports online players per zone (admin).
+	PresenceStatsSubject = "presence.stats"
 )
+
+type PresenceStats struct {
+	Online int            `json:"online"`
+	Zones  map[string]int `json:"zones"`
+}
 
 type Position struct {
 	CharacterID string  `json:"character_id"`
@@ -498,6 +505,8 @@ type MonsterKilledEv struct {
 	XP          int64         `json:"xp"`
 	WeaponKind  string        `json:"weapon_kind"`
 	Loot        items.Loot    `json:"loot"`
+	// DamageShare is this participant's fraction of the damage dealt.
+	DamageShare float64 `json:"damage_share"`
 }
 
 type ChestOpenedEv struct {
