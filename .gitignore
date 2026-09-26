@@ -1,0 +1,15 @@
+# Go
+/backend/bin/
+*.test
+*.out
+# local runtime data
+/.data/
+/assets/cache/
+/assets/lpc/spritesheets/
+# Godot
+/client/.godot/
+/client/build/
+/client/export_presets.local.cfg
+*.import.bak
+# env
+.env
