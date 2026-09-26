@@ -419,7 +419,7 @@ func (a *app) onEvent(ctx context.Context, ev bus.Event) error {
 		return nil
 	}
 	var drops []*granted
-	var leveled []c.ItemLeveledEv
+	leveled := []c.ItemLeveledEv{}
 	var salvaged int64
 	err := pgx.BeginFunc(ctx, a.db, func(tx pgx.Tx) error {
 		tag, err := tx.Exec(ctx, `INSERT INTO processed_events (event_id) VALUES ($1) ON CONFLICT DO NOTHING`, ev.ID)
