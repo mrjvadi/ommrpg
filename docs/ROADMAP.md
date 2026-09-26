@@ -23,6 +23,15 @@ Status of the design phases from `docs/design` in this codebase.
 * **History**: chronicle and world firsts.
 * **Sprite service**: LPC compositor with palette recolouring, procedural
   creatures/icons/tiles.
+* **Hot state in Lua**: GCRA limits, movement token bucket, exactly-once
+  kills with threat tables, lazy regen/respawn, sliding-window counters.
+* **Weapon effects**: elements with family resistances, glow and particle
+  tiers on enhanced/elemental weapons.
+* **Economy**: NFTs on OMM Chain (signed blocks, Merkle proofs), player
+  market in TON or gold by rarity policy, custodial TON wallet with
+  reviewed withdrawals.
+* **Admin panel**: realtime Persian web dashboard, moderation, grants,
+  withdrawal review, policy, chain explorer, audit log.
 * **Client**: Godot web client, full screen in Telegram, responsive
   portrait/landscape, safe areas, touch controls, tap-to-move, customisable
   HUD synced to the account.
@@ -38,8 +47,9 @@ Status of the design phases from `docs/design` in this codebase.
    same seeded engine, world-first discoveries.
 4. **Creation and crafting** (`CREATION_SYSTEM.md`): recipes, materials from
    biomes, specialists; reuse `items.GenerateBase` for crafted outputs.
-5. **Economy**: split an economy-service out of item-service (market,
-   auctions, contracts); keep the ledger as the source of truth.
+5. **Economy**: auctions and contracts on top of the asset service; TON
+   Connect for self-custody deposits; Telegram Stars for in-app purchases;
+   live testnet run of the TON bridge before mainnet.
 6. **NPCs and AI agents** (`AI_AGENTS.md`): seeded NPC residents (the LPC
    `RandomRecipe` already dresses them), teachers, merchants, goals.
 7. **Cities and Kingdoms** (`CITY_SYSTEM.md`, `KINGDOM_SYSTEM.md`): player

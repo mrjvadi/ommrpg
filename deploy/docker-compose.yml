@@ -107,6 +107,27 @@ services:
       <<: *env
       POSTGRES_DSN: postgres://ommrpg:${POSTGRES_PASSWORD}@postgres:5432/item?sslmode=disable
 
+  asset:
+    <<: *service
+    build: { context: ../backend, args: { SERVICE: asset } }
+    environment:
+      <<: *env
+      POSTGRES_DSN: postgres://ommrpg:${POSTGRES_PASSWORD}@postgres:5432/asset?sslmode=disable
+      # ed25519 seed for OMM Chain block signatures; the public key is shown
+      # at /api/v1/chain. Never change it after launch (old blocks stay valid
+      # only under the key that signed them).
+      CHAIN_SIGNING_KEY: ${CHAIN_SIGNING_KEY}
+
+  ton:
+    <<: *service
+    build: { context: ../backend, args: { SERVICE: ton } }
+    environment:
+      <<: *env
+      # mock = simulated chain (development); mainnet | testnet = real TON
+      TON_MODE: ${TON_MODE:-mock}
+      TON_WALLET_SEED: ${TON_WALLET_SEED:-}
+      TON_WALLET_VERSION: ${TON_WALLET_VERSION:-v4r2}
+
   presence:
     <<: *service
     build: { context: ../backend, args: { SERVICE: presence } }
@@ -155,6 +176,18 @@ services:
       CENTRIFUGO_PUBLIC_URL: /connection/websocket
       DEV_LOGIN: ${DEV_LOGIN:-false}
 
+  admin:
+    <<: *service
+    build: { context: ../backend, args: { SERVICE: admin } }
+    environment:
+      <<: *env
+      POSTGRES_DSN: postgres://ommrpg:${POSTGRES_PASSWORD}@postgres:5432/admin?sslmode=disable
+      ADMIN_SECRET: ${ADMIN_SECRET}
+      ADMIN_BOOTSTRAP_USER: ${ADMIN_BOOTSTRAP_USER:-owner}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+      CENTRIFUGO_TOKEN_SECRET: ${CENTRIFUGO_TOKEN_SECRET}
+      ADMIN_WS_URL: /connection/websocket
+
   # ------------------------------------------------------------ edge
   web:
     image: nginx:1.27-alpine
@@ -163,7 +196,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../client/build/web:/usr/share/nginx/html:ro
-    depends_on: [gateway, centrifugo]
+    depends_on: [gateway, centrifugo, admin]
 
 volumes:
   pg: {}

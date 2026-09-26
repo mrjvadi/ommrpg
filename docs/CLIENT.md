@@ -62,10 +62,29 @@ Configure Mini App) to your HTTPS domain that serves `deploy/nginx`.
 | move | joystick, or tap the ground (A* walk) | WASD / arrows |
 | attack | ATK (hold to repeat), or tap a monster | Space |
 | use (entrance, stairs, exit, chest, anvil, shrine) | USE (glows when something is near) | E |
-| bag / hero | menu | I / C |
+| bag / hero / trade | menu | I / C / T |
 
 The joystick and action buttons read raw touch events, so moving and
 attacking at the same time works.
+
+## Trade (NFTs, market, TON)
+
+Menu → **Trade** opens three tabs:
+
+* **Market**: listings filtered by currency (TON or gold), rarity, slot and
+  sort, or only your own; buying needs a second tap to confirm the price.
+* **My NFTs**: tokens on OMM Chain with their state; claim to the current
+  hero, send back to the vault, unmint, or list for sale (the currencies
+  offered follow the market policy for the item's rarity). Eligible bag
+  items can be minted here.
+* **TON wallet**: balance, the game deposit address and the account memo
+  (copy buttons and an "Open in TON wallet" link), withdrawals with their
+  status and the ledger.
+
+Deposits, withdrawal status changes and sales arrive on the personal
+channel as toasts and refresh the open panel.
+
+<p><img src="images/screen_market.png" width="240"> <img src="images/screen_wallet.png" width="240"></p>
 
 ## Customisable HUD
 

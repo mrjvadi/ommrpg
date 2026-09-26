@@ -27,7 +27,11 @@ flowchart LR
     DU[dungeon]
     HI[history]
     SP[sprite]
+    AS[asset<br/>NFTs, market, OMM Chain]
+    TN[ton<br/>TON bridge]
+    AD[admin<br/>web panel]
   end
+  TON((TON network))
   subgraph Data
     PG[(PostgreSQL)]
     DF[(Dragonfly)]
@@ -39,8 +43,10 @@ flowchart LR
   N -- WebSocket --> CF
   CF -- RPC proxy --> GW
   GW -- request/reply --> NATS
-  NATS --- ID & CH & WO & IT & PR & CO & DU & HI & SP
-  ID & CH & WO & IT --> PG
+  NATS --- ID & CH & WO & IT & PR & CO & DU & HI & SP & AS & TN & AD
+  ID & CH & WO & IT & AS & AD --> PG
+  TN <--> TON
+  N -- /admin/ --> AD
   PR & CO & DU & GW --> DF
   HI --> MG
   CH & IT & PR & CO & DU & HI -- publish --> CF
@@ -64,7 +70,12 @@ flowchart LR
   * `dungeon:<instance>_<floor>`: the same inside a dungeon floor.
   * `personal:<character>`: loot, XP, level-ups, teleports, death (a
     server-side subscription inside the connection token).
-  * `news:world`: world-firsts for everyone.
+  * `personal:<character>` also carries TON deposits/withdrawals and
+    "your item sold" notices.
+  * `news:world`: world-firsts and admin announcements for everyone.
+  * `admin:feed`, `admin:metrics`: the admin panel only (server-side
+    subscription in the admin's connection token; the `admin` namespace
+    does not allow client subscriptions).
 
 ## Services
 
@@ -79,11 +90,16 @@ flowchart LR
 | combat | monster HP/death timers, player HP, cooldowns | Dragonfly | exactly-once kills via a Lua script, seeded auditable rolls |
 | dungeon | dungeon instances, chest state | Dragonfly | per-entrance layout seed, per-run instance, return-bound exit |
 | history | chronicle, world firsts | MongoDB | consumes every `game.>` event |
-| sprite | render cache | disk + memory | LPC-style compositor, procedural creatures/icons/tiles |
+| sprite | render cache | disk + memory | LPC-style compositor, procedural creatures/icons/tiles, weapon masks for FX |
+| asset | NFT tokens, listings, TON balances + ledger, withdrawals, OMM Chain blocks | PostgreSQL `asset` | sagas with item-service, reconciler, block producer (see [ECONOMY.md](ECONOMY.md)) |
+| ton | deposit cursor | Dragonfly | the only service that talks to the TON network (mock / testnet / mainnet) |
+| admin | admin users, audit log | PostgreSQL `admin` | embedded Persian web UI, live metrics and event feed (see [ADMIN.md](ADMIN.md)) |
 
 No service reads another service's database. Hot state in Dragonfly is
 namespaced by owner (`pos:`/`area:` presence, `mon:`/`hp:`/`cd:` combat,
-`dng:`/`chest:` dungeon, `rl:` gateway, `chunk:` world).
+`dng:`/`chest:` dungeon, `rl:` gateway, `chunk:` world, `banned:`/`characc:`
+bans, `metric:` counters). Every multi-key operation on hot state is one
+Lua script (see [ALGORITHMS.md](ALGORITHMS.md)).
 
 ## NATS
 
@@ -106,6 +122,8 @@ so retries are de-duplicated. Consumers are durable and idempotent (a
 | `game.item.dropped`, `game.item.enhanced`, `game.item.salvaged`, `game.item.leveled` | item | character, history |
 | `game.character.leveled`, `game.character.awakened`, `game.character.died` | character / combat | history, character |
 | `game.dungeon.entered`, `game.dungeon.cleared` | dungeon | character, history |
+| `game.asset.minted`, `game.asset.listed`, `game.asset.sold` | asset | admin feed |
+| `game.ton.deposit`, `game.ton.withdrawal` | asset | admin feed |
 
 ## Security model
 
@@ -121,7 +139,13 @@ so retries are de-duplicated. Consumers are durable and idempotent (a
   for clients.
 * Loot and item ids derive from the kill event id, so a replayed event can
   never duplicate items (`items.source_ref` is unique).
-* Per-account HTTP and per-character RPC rate limits live in Dragonfly.
+* Per-account HTTP and per-character RPC rate limits live in Dragonfly
+  (GCRA). Banned accounts are refused at login, on every REST call and on
+  every RPC.
+* Asset operations that span services are sagas keyed by an operation id;
+  every item-service step is idempotent on that id, and a reconciler
+  finishes or rolls back interrupted ones. Chain transactions are written in
+  the same database transaction as the state change they record.
 
 ## Code layout
 

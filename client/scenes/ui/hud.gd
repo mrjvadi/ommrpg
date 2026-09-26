@@ -97,7 +97,7 @@ func _build() -> void:
 
 	var menu_row := HBoxContainer.new()
 	menu_row.add_theme_constant_override("separation", 6)
-	for pair in [["Bag", "inventory"], ["Hero", "character"], ["Chronicle", "history"], ["Layout", "layout"], ["Exit", "exit"]]:
+	for pair in [["Bag", "inventory"], ["Hero", "character"], ["Trade", "trade"], ["Chronicle", "history"], ["Layout", "layout"], ["Exit", "exit"]]:
 		var b := UiKit.button(pair[0], func(): menu.emit(pair[1]), 40)
 		b.add_theme_font_size_override("font_size", 15)
 		b.custom_minimum_size.x = 72

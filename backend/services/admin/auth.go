@@ -70,9 +70,11 @@ func (a *app) bootstrap(ctx context.Context, user, pass string) error {
 	return err
 }
 
+// clientIP trusts X-Real-IP, which the edge proxy (deploy/nginx) overwrites
+// with the peer address; X-Forwarded-For is client-controlled and ignored.
 func clientIP(r *http.Request) string {
-	if f := r.Header.Get("X-Forwarded-For"); f != "" {
-		return strings.TrimSpace(strings.Split(f, ",")[0])
+	if f := strings.TrimSpace(r.Header.Get("X-Real-IP")); f != "" {
+		return f
 	}
 	h, _, _ := net.SplitHostPort(r.RemoteAddr)
 	return h

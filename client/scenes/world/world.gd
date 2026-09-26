@@ -9,6 +9,7 @@ const TILE := MapView.TILE
 const InventoryPanel := preload("res://scenes/ui/inventory_panel.gd")
 const CharacterPanel := preload("res://scenes/ui/character_panel.gd")
 const HistoryPanel := preload("res://scenes/ui/history_panel.gd")
+const TradePanel := preload("res://scenes/ui/trade_panel.gd")
 
 var map: MapView
 var camera := Camera2D.new()
@@ -501,6 +502,9 @@ func _on_publication(channel: String, data: Dictionary) -> void:
 	if channel.begins_with("news:"):
 		if t == "world_first":
 			Game.toast(str(data.text), Color("ffd27a"))
+		elif t == "announce":
+			Game.toast(str(data.text), Color("9fe0ff"))
+			Telegram.haptic("warning")
 		return
 	match t:
 		"mv":
@@ -554,6 +558,23 @@ func _on_personal(t: String, d: Dictionary) -> void:
 			Telegram.haptic("error")
 		"dungeon_cleared":
 			Game.toast("%s cleared!" % str(d.name), UiKit.ACCENT)
+		"ton_deposit":
+			Game.toast("+%s deposited" % TradePanel.ton(d.amount), Color("4db8ff"))
+			Telegram.haptic("success")
+			_refresh_trade()
+		"ton_withdrawal":
+			var ok := str(d.status) == "sent"
+			Game.toast("Withdrawal of %s: %s" % [TradePanel.ton(d.amount), str(d.status)], UiKit.GOOD if ok else (UiKit.DANGER if str(d.status) in ["failed", "rejected"] else UiKit.MUTED))
+			_refresh_trade()
+		"market_sold":
+			Game.toast("Sold %s for %s" % [str(d.name), TradePanel.price_text(str(d.currency), d.price)], Color("4db8ff") if str(d.currency) == "TON" else UiKit.ACCENT)
+			Telegram.haptic("success")
+			Game.refresh_inventory()
+			_refresh_trade()
+
+func _refresh_trade() -> void:
+	if modal and modal.has_method("show_tab"):
+		modal.refresh()
 
 # ---------------------------------------------------------------- menus & input
 
@@ -572,6 +593,8 @@ func _on_menu(action: String) -> void:
 			_open(CharacterPanel.new())
 		"history":
 			_open(HistoryPanel.new())
+		"trade":
+			_open(TradePanel.new())
 		"layout":
 			hud.start_editing()
 		"exit":
@@ -591,6 +614,8 @@ func _unhandled_input(e: InputEvent) -> void:
 				_on_menu("inventory")
 			KEY_C:
 				_on_menu("character")
+			KEY_T:
+				_on_menu("trade")
 			KEY_ESCAPE:
 				if modal:
 					modal.queue_free()
@@ -679,6 +704,14 @@ func _autotest(now: float) -> void:
 			_on_menu("character")
 			await get_tree().create_timer(1.5).timeout
 			await Cfg.shot("04_hero")
+			modal.queue_free()
+			_on_menu("trade")
+			await get_tree().create_timer(2.5).timeout
+			await Cfg.shot("07_trade_market")
+			for tab in ["vault", "wallet"]:
+				modal.show_tab(tab)
+				await get_tree().create_timer(2.5).timeout
+				await Cfg.shot("08_trade_" + tab)
 			modal.queue_free()
 			hud.start_editing()
 			await get_tree().create_timer(0.5).timeout

@@ -286,6 +286,7 @@ func (a *app) completeSale(ctx context.Context, tx pgx.Tx, l c.Listing, buyer st
 func (a *app) announceSale(ctx context.Context, l c.Listing) {
 	name, rar := trimName(l.Token.Item)
 	_ = a.bus.Publish(ctx, c.EvAssetSold, fmt.Sprintf("sold:%d", l.ID), c.AssetEv{TokenID: l.TokenID, Name: name, Rarity: rar, From: l.Seller, To: l.Buyer, Currency: l.Currency, Price: l.Price})
+	a.notifyAccount(ctx, l.Seller, map[string]any{"t": "market_sold", "name": name, "rarity": rar, "currency": l.Currency, "price": l.Price})
 }
 
 // buyGold is a saga: reserve the listing, pay through item-service (gold
