@@ -105,8 +105,12 @@ func wallet(ctx context.Context, q querier, owner string, lock bool) (c.Wallet, 
 // pre-checked; the CHECK constraints are the last line of defence.
 func credit(ctx context.Context, tx pgx.Tx, owner string, gold, essence int64, reason, ref string) (c.Wallet, error) {
 	var w c.Wallet
-	err := tx.QueryRow(ctx, `INSERT INTO wallets (owner_id, gold, essence) VALUES ($1,$2,$3)
-		ON CONFLICT (owner_id) DO UPDATE SET gold = wallets.gold + $2, essence = wallets.essence + $3
+	// Ensure the row first: an upsert would evaluate the CHECK constraints on
+	// the (negative) insert tuple before falling back to the update.
+	if _, err := tx.Exec(ctx, `INSERT INTO wallets (owner_id) VALUES ($1) ON CONFLICT DO NOTHING`, owner); err != nil {
+		return w, err
+	}
+	err := tx.QueryRow(ctx, `UPDATE wallets SET gold = gold + $2, essence = essence + $3 WHERE owner_id = $1
 		RETURNING gold, essence`, owner, gold, essence).Scan(&w.Gold, &w.Essence)
 	if err != nil {
 		return w, err

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -84,7 +85,7 @@ func describe(ev bus.Event) (summary string, firsts []string, keep bool) {
 		}
 	case c.EvCharacterAwakened:
 		d, _ := bus.Decode[c.CharacterAwakenedEv](ev)
-		return fmt.Sprintf("%s awakened as a %s", d.Name, d.Class), []string{"class:" + d.Class}, true
+		return fmt.Sprintf("%s awakened as %s %s", d.Name, article(d.Class), d.Class), []string{"class:" + d.Class}, true
 	case c.EvMonsterKilled:
 		d, _ := bus.Decode[c.MonsterKilledEv](ev)
 		if d.Rank != bestiary.Normal {
@@ -93,7 +94,7 @@ func describe(ev bus.Event) (summary string, firsts []string, keep bool) {
 	case c.EvItemDropped:
 		d, _ := bus.Decode[c.ItemDroppedEv](ev)
 		if d.Item.Rarity >= items.Epic {
-			return fmt.Sprintf("a %s item appeared: %s", d.Item.Rarity, d.Item.Name),
+			return fmt.Sprintf("%s %s item appeared: %s", article(d.Item.Rarity.String()), d.Item.Rarity, d.Item.Name),
 				[]string{"drop:" + d.Item.Rarity.String(), "drop:" + d.Item.Rarity.String() + ":" + d.Item.Base}, true
 		}
 	case c.EvItemEnhanced:
@@ -106,6 +107,13 @@ func describe(ev bus.Event) (summary string, firsts []string, keep bool) {
 		return fmt.Sprintf("%s (tier %d) was cleared", d.Name, d.Tier), []string{"clear:" + d.EntranceID}, true
 	}
 	return "", nil, false
+}
+
+func article(word string) string {
+	if strings.ContainsAny(word[:1], "aeiou") {
+		return "an"
+	}
+	return "a"
 }
 
 func (a *app) onEvent(ctx context.Context, ev bus.Event) error {
