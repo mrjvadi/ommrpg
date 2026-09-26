@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go build ./...
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.4.1
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q godot.zip && mv Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Import and parse all scripts
+        run: |
+          godot --headless --path client --import 2>&1 | tee import.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script" import.log
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ommrpg
+          POSTGRES_PASSWORD: ommrpg
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ommrpg" --health-interval 2s --health-retries 30
+      dragonfly:
+        image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+        ports: ["6379:6379"]
+        options: --ulimit memlock=-1
+      mongodb:
+        image: mongo:7
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Databases
+        run: for db in identity world character item; do PGPASSWORD=ommrpg psql -h localhost -U ommrpg -d postgres -c "CREATE DATABASE $db"; done
+      - name: NATS and Centrifugo
+        run: |
+          docker run -d --name nats -p 4222:4222 nats:2.11-alpine -js
+          docker run -d --name centrifugo --network host \
+            -e CENTRIFUGO_RPC_PROXY_ENDPOINT=http://localhost:8080/centrifugo/rpc \
+            -v "$PWD/deploy/centrifugo:/c" centrifugo/centrifugo:v6 centrifugo -c /c/config.json
+      - name: Start services
+        run: |
+          PG_BASE=postgres://ommrpg:ommrpg@localhost:5432 ./scripts/run-local.sh
+          for p in $(seq 8101 8110); do
+            for i in $(seq 1 60); do curl -sf localhost:$p/readyz && break; sleep 1; done
+          done
+      - name: Bots play the game
+        working-directory: backend
+        run: go run ./tools/bot -n 3 -kills 2
+      - name: Service logs
+        if: failure()
+        run: tail -n 50 .data/logs/*.log; docker logs centrifugo | tail -n 50

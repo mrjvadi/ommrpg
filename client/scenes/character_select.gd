@@ -36,6 +36,7 @@ func _ready() -> void:
 	_status = UiKit.para("", 18, UiKit.MUTED)
 	col.add_child(_status)
 	col.add_child(_creator())
+	col.add_child(UiKit.button("Credits", func(): add_child(preload("res://scenes/ui/credits_panel.gd").new()), 44))
 	_seed = randi()
 	_reroll()
 	_refresh()
@@ -55,6 +56,12 @@ func _refresh() -> void:
 	if Cfg.autotest:
 		await get_tree().create_timer(2.5).timeout
 		await Cfg.shot("01_select")
+		if not Game.characters.is_empty() and Cfg.shot_dir != "":
+			var credits: Node = preload("res://scenes/ui/credits_panel.gd").new()
+			add_child(credits)
+			await get_tree().create_timer(2.0).timeout
+			await Cfg.shot("00_credits")
+			credits.queue_free()
 		if Game.characters.is_empty():
 			_name.text = "auto%d" % (randi() % 100000)
 			await _create()
