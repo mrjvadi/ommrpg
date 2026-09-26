@@ -364,3 +364,41 @@ func (a *app) onEvent(ctx context.Context, ev bus.Event) error {
 	}
 	return nil
 }
+
+func (a *app) queryList(ctx context.Context, sql string, args ...any) (c.CharacterListResp, error) {
+	rows, err := a.db.Query(ctx, `SELECT `+cols+` FROM characters `+sql, args...)
+	if err != nil {
+		return c.CharacterListResp{}, err
+	}
+	defer rows.Close()
+	out := c.CharacterListResp{Characters: []c.Character{}}
+	for rows.Next() {
+		r, err := scan(rows)
+		if err != nil {
+			return out, err
+		}
+		out.Characters = append(out.Characters, r.Character)
+	}
+	return out, rows.Err()
+}
+
+// search finds characters by name prefix/substring, id or account id (admin).
+func (a *app) search(ctx context.Context, req c.SearchReq) (c.CharacterListResp, error) {
+	limit := req.Limit
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+	q := strings.TrimSpace(req.Query)
+	if q == "" {
+		return a.queryList(ctx, `ORDER BY updated_at DESC LIMIT $1`, limit)
+	}
+	return a.queryList(ctx, `WHERE name ILIKE '%' || $1 || '%' OR id::text = $1 OR account_id::text = $1 ORDER BY level DESC LIMIT $2`, q, limit)
+}
+
+func (a *app) top(ctx context.Context, req c.SearchReq) (c.CharacterListResp, error) {
+	limit := req.Limit
+	if limit <= 0 || limit > 100 {
+		limit = 10
+	}
+	return a.queryList(ctx, `ORDER BY level DESC, xp DESC LIMIT $1`, limit)
+}

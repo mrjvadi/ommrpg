@@ -45,6 +45,8 @@ func main() {
 		bus.Handle(b, c.CharacterCombatProfile, a.combatProfile),
 		bus.Handle(b, c.CharacterLocationGet, a.locationGet),
 		bus.Handle(b, c.CharacterLocationSet, a.locationSet),
+		bus.Handle(b, c.CharacterSearch, a.search),
+		bus.Handle(b, c.CharacterTop, a.top),
 		b.Consume(s.Ctx, "character", []string{c.EvMonsterKilled, c.EvItemEnhanced, c.EvItemSalvaged, c.EvDungeonCleared, c.EvCharacterDied}, a.onEvent),
 	} {
 		if err != nil {

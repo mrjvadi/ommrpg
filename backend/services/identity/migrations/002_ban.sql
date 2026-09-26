@@ -1,0 +1,2 @@
+ALTER TABLE accounts ADD COLUMN banned BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE accounts ADD COLUMN ban_reason TEXT;

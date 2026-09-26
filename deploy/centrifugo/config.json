@@ -34,6 +34,9 @@
         "history_size": 20,
         "history_ttl": "24h",
         "allow_history_for_subscriber": true
+      },
+      {
+        "name": "admin"
       }
     ]
   },

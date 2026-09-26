@@ -175,6 +175,15 @@ func (b *Bus) Publish(ctx context.Context, subject, id string, data any) error {
 // Consume attaches a durable consumer. Handlers must be idempotent: a
 // returned error triggers redelivery with backoff.
 func (b *Bus) Consume(ctx context.Context, durable string, subjects []string, fn func(ctx context.Context, ev Event) error) error {
+	return b.consume(ctx, durable, subjects, jetstream.DeliverAllPolicy, fn)
+}
+
+// ConsumeNew is Consume starting from new events only (live feeds).
+func (b *Bus) ConsumeNew(ctx context.Context, durable string, subjects []string, fn func(ctx context.Context, ev Event) error) error {
+	return b.consume(ctx, durable, subjects, jetstream.DeliverNewPolicy, fn)
+}
+
+func (b *Bus) consume(ctx context.Context, durable string, subjects []string, policy jetstream.DeliverPolicy, fn func(ctx context.Context, ev Event) error) error {
 	cons, err := b.JS.CreateOrUpdateConsumer(ctx, GameStream, jetstream.ConsumerConfig{
 		Durable:        durable,
 		FilterSubjects: subjects,
@@ -182,7 +191,7 @@ func (b *Bus) Consume(ctx context.Context, durable string, subjects []string, fn
 		MaxDeliver:     8,
 		BackOff:        []time.Duration{time.Second, 2 * time.Second, 5 * time.Second, 10 * time.Second, 30 * time.Second, time.Minute, 2 * time.Minute},
 		AckWait:        30 * time.Second,
-		DeliverPolicy:  jetstream.DeliverAllPolicy,
+		DeliverPolicy:  policy,
 	})
 	if err != nil {
 		return err

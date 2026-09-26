@@ -12,6 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/mrjvadi/ommrpg/backend/pkg/apperr"
 	"github.com/mrjvadi/ommrpg/backend/pkg/bus"
@@ -39,13 +40,18 @@ func main() {
 		s.Fatal("nats", err)
 	}
 	defer b.Close()
-	a := &app{db: db}
+	rdb, err := store.Dragonfly(s.Ctx, config.String("DRAGONFLY_URL", "redis://localhost:6379/0"))
+	if err != nil {
+		s.Fatal("dragonfly", err)
+	}
+	a := &app{db: db, rdb: rdb}
 	for _, err := range []error{
 		bus.Handle(b, c.IdentityTelegramLogin, a.telegramLogin),
 		bus.Handle(b, c.IdentityDevLogin, a.devLogin),
 		bus.Handle(b, c.IdentityGet, a.get),
 		bus.Handle(b, c.IdentitySettingsGet, a.settingsGet),
 		bus.Handle(b, c.IdentitySettingsPut, a.settingsPut),
+		bus.Handle(b, c.IdentityBan, a.ban),
 	} {
 		if err != nil {
 			s.Fatal("subscribe", err)
@@ -55,17 +61,42 @@ func main() {
 	s.Wait()
 }
 
-type app struct{ db *pgxpool.Pool }
+type app struct {
+	db  *pgxpool.Pool
+	rdb *redis.Client
+}
 
-const accountCols = `id, COALESCE(telegram_id,0), COALESCE(username,''), display_name, COALESCE(language,''), created_at`
+const accountCols = `id, COALESCE(telegram_id,0), COALESCE(username,''), display_name, COALESCE(language,''), created_at, banned, COALESCE(ban_reason,'')`
 
 func scanAccount(row pgx.Row) (c.Account, error) {
 	var a c.Account
-	err := row.Scan(&a.ID, &a.TelegramID, &a.Username, &a.DisplayName, &a.Language, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.TelegramID, &a.Username, &a.DisplayName, &a.Language, &a.CreatedAt, &a.Banned, &a.BanReason)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return a, apperr.New(apperr.NotFound, "account not found")
 	}
 	return a, err
+}
+
+func refuseBanned(a c.Account, err error) (c.Account, error) {
+	if err == nil && a.Banned {
+		return c.Account{}, apperr.New(apperr.Forbidden, "this account is banned: %s", a.BanReason)
+	}
+	return a, err
+}
+
+// ban flips the ban flag in the database and mirrors it in Dragonfly so the
+// gateway can refuse requests without a database round trip.
+func (a *app) ban(ctx context.Context, req c.BanReq) (c.Account, error) {
+	acc, err := scanAccount(a.db.QueryRow(ctx, `UPDATE accounts SET banned=$2, ban_reason=NULLIF($3,'') WHERE id=$1 RETURNING `+accountCols, req.AccountID, req.Banned, req.Reason))
+	if err != nil {
+		return acc, err
+	}
+	if req.Banned {
+		err = a.rdb.Set(ctx, c.BannedKey(acc.ID), req.Reason, 0).Err()
+	} else {
+		err = a.rdb.Del(ctx, c.BannedKey(acc.ID)).Err()
+	}
+	return acc, err
 }
 
 func (a *app) telegramLogin(ctx context.Context, req c.TelegramLoginReq) (c.Account, error) {
@@ -77,13 +108,13 @@ func (a *app) telegramLogin(ctx context.Context, req c.TelegramLoginReq) (c.Acco
 	if name == "" {
 		name = u.Username
 	}
-	return scanAccount(a.db.QueryRow(ctx, `
+	return refuseBanned(scanAccount(a.db.QueryRow(ctx, `
 		INSERT INTO accounts (telegram_id, username, display_name, language)
 		VALUES ($1, NULLIF($2,''), $3, NULLIF($4,''))
 		ON CONFLICT (telegram_id) DO UPDATE SET
 			username = EXCLUDED.username, display_name = EXCLUDED.display_name,
 			language = EXCLUDED.language, last_login_at = now()
-		RETURNING `+accountCols, u.ID, u.Username, name, u.LanguageCode))
+		RETURNING `+accountCols, u.ID, u.Username, name, u.LanguageCode)))
 }
 
 var devNameRe = regexp.MustCompile(`^[a-zA-Z0-9_]{3,24}$`)
@@ -92,11 +123,11 @@ func (a *app) devLogin(ctx context.Context, req c.DevLoginReq) (c.Account, error
 	if !devNameRe.MatchString(req.Username) {
 		return c.Account{}, apperr.New(apperr.Invalid, "username must be 3-24 letters, digits or _")
 	}
-	return scanAccount(a.db.QueryRow(ctx, `
+	return refuseBanned(scanAccount(a.db.QueryRow(ctx, `
 		INSERT INTO accounts (dev_username, username, display_name)
 		VALUES ($1, $1, $1)
 		ON CONFLICT (dev_username) DO UPDATE SET last_login_at = now()
-		RETURNING `+accountCols, req.Username))
+		RETURNING `+accountCols, req.Username)))
 }
 
 func (a *app) get(ctx context.Context, req c.AccountReq) (c.Account, error) {

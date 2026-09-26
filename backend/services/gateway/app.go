@@ -91,6 +91,10 @@ func (a *app) authed(needCharacter bool, h http.HandlerFunc) http.Handler {
 			httpx.Error(w, apperr.New(apperr.Unauthorized, "login required"))
 			return
 		}
+		if n, _ := a.rdb.Exists(r.Context(), c.BannedKey(s.AccountID)).Result(); n > 0 {
+			httpx.Error(w, apperr.New(apperr.Forbidden, "this account is banned"))
+			return
+		}
 		if needCharacter && s.CharacterID == "" {
 			httpx.Error(w, apperr.New(apperr.Forbidden, "select a character first"))
 			return
@@ -237,6 +241,7 @@ func (a *app) selectCharacter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.CharacterID = ch.ID
+	a.rdb.Set(ctx, c.CharAccountKey(ch.ID), s.AccountID, 30*24*time.Hour)
 	tok, exp, err := a.sessions.Issue(s)
 	if err != nil {
 		httpx.Error(w, err)
@@ -485,6 +490,11 @@ func (a *app) dispatch(ctx context.Context, char, method string, raw json.RawMes
 	}
 	if err := a.rateLimit(ctx, "rpc:"+method+":"+char, limit); err != nil {
 		return nil, err
+	}
+	if acc := a.rdb.Get(ctx, c.CharAccountKey(char)).Val(); acc != "" {
+		if n, _ := a.rdb.Exists(ctx, c.BannedKey(acc)).Result(); n > 0 {
+			return nil, apperr.New(apperr.Forbidden, "this account is banned")
+		}
 	}
 	cr := c.CharacterReq{CharacterID: char}
 	switch method {

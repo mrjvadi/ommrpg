@@ -62,7 +62,7 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - name: Databases
-        run: for db in identity world character item asset; do PGPASSWORD=ommrpg psql -h localhost -U ommrpg -d postgres -c "CREATE DATABASE $db"; done
+        run: for db in identity world character item asset admin; do PGPASSWORD=ommrpg psql -h localhost -U ommrpg -d postgres -c "CREATE DATABASE $db"; done
       - name: NATS and Centrifugo
         run: |
           docker run -d --name nats -p 4222:4222 nats:2.11-alpine -js
@@ -71,13 +71,22 @@ jobs:
             -v "$PWD/deploy/centrifugo:/c" centrifugo/centrifugo:v6 centrifugo -c /c/config.json
       - name: Start services
         run: |
-          PG_BASE=postgres://ommrpg:ommrpg@localhost:5432 ./scripts/run-local.sh
-          for p in $(seq 8101 8112); do
+          PG_BASE=postgres://ommrpg:ommrpg@localhost:5432 ADMIN_BOOTSTRAP_USER=ci ADMIN_BOOTSTRAP_PASSWORD=ci-admin-pass ./scripts/run-local.sh
+          for p in $(seq 8101 8113); do
             for i in $(seq 1 60); do curl -sf localhost:$p/readyz && break; sleep 1; done
           done
       - name: Bots play the game
         working-directory: backend
         run: go run ./tools/bot -n 3 -kills 2
+      - name: NFT market, TON ledger and chain
+        working-directory: backend
+        run: go run ./tools/bot -scenario market
+      - name: Admin panel API
+        run: |
+          T=$(curl -sf -XPOST localhost:8095/admin/api/login -d '{"username":"ci","password":"ci-admin-pass"}' | jq -r .token)
+          curl -sf -H "Authorization: Bearer $T" localhost:8095/admin/api/dashboard | jq -e '.history | length > 0'
+          curl -sf -H "Authorization: Bearer $T" localhost:8095/admin/api/chain | jq -e '.info.height >= 0'
+          curl -sf localhost:8095/admin/ | grep -q 'lang="fa"'
       - name: Service logs
         if: failure()
         run: tail -n 50 .data/logs/*.log; docker logs centrifugo | tail -n 50

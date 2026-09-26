@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs every backend service as a local process (no Docker) against
 # infrastructure you already have running: PostgreSQL (with the identity,
-# world, character and item databases), Dragonfly/Redis, NATS with
+# identity, world, character, item, asset and admin databases), Dragonfly/Redis, NATS with
 # JetStream, Centrifugo and MongoDB. Logs go to .data/logs/<service>.log.
 #
 #   ./scripts/run-local.sh          # build + start all services
@@ -12,7 +12,7 @@ LOGS="$ROOT/.data/logs"
 PIDS="$ROOT/.data/pids"
 mkdir -p "$LOGS" "$PIDS"
 
-SERVICES=(identity world sprite character item asset ton presence combat dungeon history gateway)
+SERVICES=(identity world sprite character item asset ton presence combat dungeon history gateway admin)
 
 if [[ "${1:-}" == "stop" ]]; then
   for s in "${SERVICES[@]}"; do
@@ -31,12 +31,13 @@ export CENTRIFUGO_API_URL="${CENTRIFUGO_API_URL:-http://localhost:8000}"
 export DEV_LOGIN="${DEV_LOGIN:-true}"
 export SPRITE_CATALOG="$ROOT/assets/lpc/catalog.json"
 export SPRITE_CACHE_DIR="$ROOT/.data/sprite-cache"
+export ADMIN_WS_URL="${ADMIN_WS_URL:-ws://localhost:8000/connection/websocket}"
 PG="${PG_BASE:-postgres://ommrpg:ommrpg@localhost:5432}"
 
 port=8101
 for s in "${SERVICES[@]}"; do
   db=""
-  case "$s" in identity|world|character|item|asset) db="POSTGRES_DSN=$PG/$s?sslmode=disable";; esac
+  case "$s" in identity|world|character|item|asset|admin) db="POSTGRES_DSN=$PG/$s?sslmode=disable";; esac
   env HEALTH_ADDR=":$port" $db "$ROOT/backend/bin/$s" > "$LOGS/$s.log" 2>&1 &
   echo $! > "$PIDS/$s"
   echo "started $s (pid $!, health :$port)"

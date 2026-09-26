@@ -32,6 +32,8 @@ type Account struct {
 	DisplayName string    `json:"display_name"`
 	Language    string    `json:"language,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
+	Banned      bool      `json:"banned,omitempty"`
+	BanReason   string    `json:"ban_reason,omitempty"`
 }
 
 type TelegramLoginReq struct {
@@ -560,3 +562,28 @@ type DungeonClearedEv struct {
 	Name        string `json:"name"`
 	Tier        int    `json:"tier"`
 }
+
+// ---------------------------------------------------------------- admin
+
+const (
+	IdentityBan     = "identity.ban"
+	CharacterSearch = "character.search"
+	CharacterTop    = "character.top"
+)
+
+type BanReq struct {
+	AccountID string `json:"account_id"`
+	Banned    bool   `json:"banned"`
+	Reason    string `json:"reason"`
+}
+
+type SearchReq struct {
+	Query string `json:"query"`
+	Limit int    `json:"limit"`
+}
+
+// BannedKey is the Dragonfly flag checked by the gateway on every request.
+func BannedKey(account string) string { return "banned:" + account }
+
+// CharAccountKey maps a character (the realtime user id) to its account.
+func CharAccountKey(character string) string { return "characc:" + character }

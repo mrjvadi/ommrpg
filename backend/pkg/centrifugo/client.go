@@ -67,6 +67,11 @@ func (c *Client) Broadcast(ctx context.Context, channels []string, data any) err
 	return c.call(ctx, "broadcast", map[string]any{"channels": channels, "data": data})
 }
 
+// Disconnect closes every connection of a user (kick).
+func (c *Client) Disconnect(ctx context.Context, user string) error {
+	return c.call(ctx, "disconnect", map[string]any{"user": user, "disconnect": map[string]any{"code": 3503, "reason": "kicked by admin"}})
+}
+
 // PersonalChannel is the per-character notification channel. It is attached
 // as a server-side subscription in the connection token.
 func PersonalChannel(characterID string) string { return "personal:" + characterID }
