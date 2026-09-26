@@ -20,20 +20,22 @@ Realtime="*res://autoload/realtime.gd"
 Sprites="*res://autoload/sprites.gd"
 Game="*res://autoload/game_state.gd"
 HudLayout="*res://autoload/hud_layout.gd"
+Settings="*res://autoload/settings.gd"
+Popups="*res://autoload/popups.gd"
 
 [display]
 
-window/size/viewport_width=540
-window/size/viewport_height=960
+window/size/viewport_width=960
+window/size/viewport_height=540
 window/size/resizable=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=6
+window/handheld/orientation=4
 window/energy_saving/keep_screen_on=true
 
 [gui]
 
-theme/custom_font="res://assets/fonts/Vazirmatn-Regular.ttf"
+theme/custom_font="res://assets/fonts/Vazirmatn-Bold.ttf"
 theme/default_font_antialiasing=1
 common/drop_mouse_on_gui_input_disabled=true
 

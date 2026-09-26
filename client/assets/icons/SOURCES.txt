@@ -1,0 +1,46 @@
+Icons from game-icons.net (https://game-icons.net), licensed CC BY 3.0
+(https://creativecommons.org/licenses/by/3.0/). The black background
+square was removed; they are recoloured in the game.
+
+amulet     Lorc        gem-pendant
+anvil      Lorc        anvil
+attack     Lorc        crossed-swords
+bag        Delapouite  backpack
+book       Delapouite  book-cover
+chest      Lorc        breastplate
+chronicle  Lorc        scroll-unfurled
+crown      Lorc        crown
+dungeon    Delapouite  dungeon-gate
+essence    Lorc        crystal-growth
+exit       Delapouite  exit-door
+feet       Lorc        boots
+fist       Lorc        fist
+fullscreen Delapouite  expand
+gold       Delapouite  two-coins
+guild      Lorc        flying-flag
+hammer     Lorc        claw-hammer
+hands      Lorc        mailed-fist
+head       Lorc        visored-helm
+heart      Zeromancer  heart-plus
+hero       Lorc        visored-helm
+home       Delapouite  house
+info       Delapouite  info
+layout     Delapouite  move
+legs       Delapouite  leg-armor
+map        Lorc        treasure-map
+offhand    Sbed        shield
+phone      Delapouite  smartphone
+potion     Lorc        potion-ball
+ring       Delapouite  ring
+rotate     Delapouite  clockwise-rotation
+scroll     Lorc        tied-scroll
+settings   Lorc        cog
+skull      Lorc        skull-crossed-bones
+sparkle    Delapouite  sparkles
+star       Delapouite  star-formation
+ton        Lorc        cut-diamond
+trade      Delapouite  shop
+use        Lorc        hand
+vault      Lorc        locked-chest
+wallet     Delapouite  wallet
+weapon     Lorc        broadsword

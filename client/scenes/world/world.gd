@@ -6,8 +6,7 @@ extends Node
 signal exit_to_menu
 
 const TILE := MapView.TILE
-const InventoryPanel := preload("res://scenes/ui/inventory_panel.gd")
-const CharacterPanel := preload("res://scenes/ui/character_panel.gd")
+const HeroPanel := preload("res://scenes/ui/hero_panel.gd")
 const HistoryPanel := preload("res://scenes/ui/history_panel.gd")
 const TradePanel := preload("res://scenes/ui/trade_panel.gd")
 
@@ -15,7 +14,7 @@ var map: MapView
 var camera := Camera2D.new()
 var player: LpcSprite
 var hud: Hud
-var overlay := CanvasLayer.new()
+## The window opened from the world (Popups owns the stack).
 var modal: Control
 
 var zone := ""
@@ -51,13 +50,12 @@ func _ready() -> void:
 	add_child(hud_layer)
 	hud = Hud.new()
 	hud_layer.add_child(hud)
-	overlay.layer = 10
-	add_child(overlay)
 	hud.attack_pressed.connect(func(): _attack_held = true; _try_attack())
 	hud.attack_btn.released.connect(func(): _attack_held = false)
 	hud.interact_pressed.connect(_interact)
 	hud.menu.connect(_on_menu)
 	get_viewport().size_changed.connect(_fit_camera)
+	Telegram.insets_changed.connect(_fit_camera)
 	Realtime.publication.connect(_on_publication)
 	Realtime.connected.connect(_on_connected)
 	Realtime.disconnected.connect(func(reason): Game.toast("Connection lost, reconnecting...", UiKit.DANGER))
@@ -79,6 +77,7 @@ func _ready() -> void:
 	_fit_camera()
 	await Game.load_species()
 	Game.refresh_inventory()
+	Game.refresh_ton()
 	Realtime.connect_to(Cfg.realtime_url(str(Game.realtime.url)), str(Game.realtime.token))
 	_autotest_start = Time.get_ticks_msec() / 1000.0
 
@@ -277,6 +276,7 @@ func _process(delta: float) -> void:
 	var near := map.nearest_interactive(pos)
 	hud.interact_btn.highlight = not near.is_empty()
 	hud.interact_btn.queue_redraw()
+	_update_target_frame()
 	for id in remotes.keys():
 		var r: Dictionary = remotes[id]
 		var node: LpcSprite = r.node
@@ -332,7 +332,7 @@ func _input_vector() -> Vector2:
 
 func _move(delta: float) -> void:
 	var v := Vector2.ZERO
-	if modal == null and not hud.editing:
+	if not Popups.has_open() and not hud.editing:
 		v = _input_vector()
 	if v != Vector2.ZERO:
 		path.clear() # manual control cancels tap-to-move
@@ -403,6 +403,15 @@ func _pick_target() -> MonsterNode:
 			best = m
 	return best
 
+func _update_target_frame() -> void:
+	if target_id != "" and monsters.has(target_id) and monsters[target_id].alive():
+		var m: MonsterNode = monsters[target_id]
+		var rank := str(m.spawn.get("rank", "normal"))
+		var col := UiKit.TEXT if rank == "normal" else (Color("ffb040") if rank == "elite" else Color("ff5a4e"))
+		hud.set_target("%s  Lv. %d" % [str(m.species.get("name", "?")), int(m.spawn.level)], m.hp, m.max_hp, col)
+	else:
+		hud.set_target("", 0, 1)
+
 func _set_target(id: String) -> void:
 	if target_id != "" and monsters.has(target_id):
 		monsters[target_id].targeted = false
@@ -414,7 +423,7 @@ func _set_target(id: String) -> void:
 
 func _try_attack() -> void:
 	var now := Time.get_ticks_msec() / 1000.0
-	if not ready_to_play or now < _next_attack_t or modal != null:
+	if not ready_to_play or now < _next_attack_t or Popups.has_open():
 		return
 	var m := _pick_target()
 	if m == null:
@@ -465,7 +474,7 @@ func _try_attack() -> void:
 # ---------------------------------------------------------------- interaction
 
 func _interact() -> void:
-	if not ready_to_play or modal != null:
+	if not ready_to_play or Popups.has_open():
 		return
 	var near := map.nearest_interactive(pos)
 	if near.is_empty():
@@ -487,7 +496,7 @@ func _interact() -> void:
 		"chest":
 			Game.toast("The chest opens!", Color("ffd24a"))
 		"open_forge":
-			_open(InventoryPanel.new())
+			_open(HeroPanel.new("bag"))
 		"shrine":
 			Game.toast(str(d.text), Color("9fe0ff"))
 
@@ -539,6 +548,8 @@ func _on_personal(t: String, d: Dictionary) -> void:
 			var lvls = d.get("item_levels")
 			for lv in (lvls if lvls is Array else []):
 				Game.toast("%s reached level %d" % [str(lv.item_name), int(lv.level)], Color("9fe0ff"))
+			if found is Array and not found.is_empty():
+				hud.set_badge("inventory", true)
 			if d.get("auto_salvaged", false):
 				Game.toast("Bag full: drops were salvaged", UiKit.MUTED)
 			Game.refresh_inventory()
@@ -561,42 +572,60 @@ func _on_personal(t: String, d: Dictionary) -> void:
 		"ton_deposit":
 			Game.toast("+%s deposited" % TradePanel.ton(d.amount), Color("4db8ff"))
 			Telegram.haptic("success")
+			Game.refresh_ton()
+			hud.set_badge("trade", true)
 			_refresh_trade()
 		"ton_withdrawal":
 			var ok := str(d.status) == "sent"
 			Game.toast("Withdrawal of %s: %s" % [TradePanel.ton(d.amount), str(d.status)], UiKit.GOOD if ok else (UiKit.DANGER if str(d.status) in ["failed", "rejected"] else UiKit.MUTED))
+			Game.refresh_ton()
 			_refresh_trade()
 		"market_sold":
 			Game.toast("Sold %s for %s" % [str(d.name), TradePanel.price_text(str(d.currency), d.price)], Color("4db8ff") if str(d.currency) == "TON" else UiKit.ACCENT)
 			Telegram.haptic("success")
 			Game.refresh_inventory()
+			Game.refresh_ton()
+			hud.set_badge("trade", true)
 			_refresh_trade()
 
 func _refresh_trade() -> void:
-	if modal and modal.has_method("show_tab"):
+	if is_instance_valid(modal) and modal.has_method("show_tab") and modal.has_method("refresh"):
 		modal.refresh()
 
 # ---------------------------------------------------------------- menus & input
 
 func _open(m: Control) -> void:
-	if modal:
-		modal.queue_free()
+	Popups.close_all()
 	modal = m
-	overlay.add_child(m)
+	Popups.open(m)
 	m.tree_exited.connect(func(): if modal == m: modal = null)
 
+## Opened from the settings window.
+func edit_layout() -> void:
+	Popups.close_all()
+	hud.start_editing()
+
 func _on_menu(action: String) -> void:
+	if hud.editing and action != "layout":
+		return
 	match action:
 		"inventory":
-			_open(InventoryPanel.new())
+			hud.set_badge("inventory", false)
+			_open(HeroPanel.new("bag"))
 		"character":
-			_open(CharacterPanel.new())
+			_open(HeroPanel.new("stats"))
 		"history":
 			_open(HistoryPanel.new())
 		"trade":
+			hud.set_badge("trade", false)
 			_open(TradePanel.new())
+		"wallet":
+			hud.set_badge("trade", false)
+			_open(TradePanel.new("wallet"))
+		"settings":
+			Telegram.settings_pressed.emit()
 		"layout":
-			hud.start_editing()
+			edit_layout()
 		"exit":
 			var now := Time.get_ticks_msec() / 1000.0
 			if now - _exit_armed < 2.5:
@@ -616,10 +645,7 @@ func _unhandled_input(e: InputEvent) -> void:
 				_on_menu("character")
 			KEY_T:
 				_on_menu("trade")
-			KEY_ESCAPE:
-				if modal:
-					modal.queue_free()
-	elif e is InputEventScreenTouch and e.pressed and modal == null and not hud.editing and ready_to_play:
+	elif e is InputEventScreenTouch and e.pressed and not Popups.has_open() and not hud.editing and ready_to_play:
 		if hud.is_over_ui(e.position):
 			return
 		var world_px: Vector2 = get_viewport().get_canvas_transform().affine_inverse() * e.position
@@ -700,11 +726,14 @@ func _autotest(now: float) -> void:
 			_autotest_stage = "busy"
 			await get_tree().create_timer(2.5).timeout
 			await Cfg.shot("03_inventory")
-			modal.queue_free()
 			_on_menu("character")
-			await get_tree().create_timer(1.5).timeout
+			await get_tree().create_timer(2.0).timeout
 			await Cfg.shot("04_hero")
-			modal.queue_free()
+			var eq := (modal.get("_items") as Array).filter(func(i): return str(i.get("equipped", "")) != "")
+			if not eq.is_empty():
+				modal._open_card(eq[0])
+				await get_tree().create_timer(1.5).timeout
+				await Cfg.shot("04_item_card")
 			_on_menu("trade")
 			await get_tree().create_timer(2.5).timeout
 			await Cfg.shot("07_trade_market")
@@ -712,10 +741,22 @@ func _autotest(now: float) -> void:
 				modal.show_tab(tab)
 				await get_tree().create_timer(2.5).timeout
 				await Cfg.shot("08_trade_" + tab)
-			modal.queue_free()
+			Popups.close_all()
+			Telegram.settings_pressed.emit()
+			await get_tree().create_timer(1.5).timeout
+			await Cfg.shot("09_settings")
+			Popups.close_all()
+			Popups.confirm("Salvage?", "Rusty Sword turns into 3 essence and 5 gold.", "Salvage", "red")
+			await get_tree().create_timer(0.8).timeout
+			await Cfg.shot("10_dialog")
+			Popups.close_top()
+			await get_tree().create_timer(0.3).timeout
 			hud.start_editing()
-			await get_tree().create_timer(0.5).timeout
+			hud.select("level")
+			await get_tree().create_timer(0.8).timeout
 			await Cfg.shot("05_layout_editor")
 			hud.stop_editing(false)
+			await get_tree().create_timer(0.5).timeout
+			await Cfg.shot("02_world_hud")
 			print("AUTOTEST PASS")
 			get_tree().quit(0)

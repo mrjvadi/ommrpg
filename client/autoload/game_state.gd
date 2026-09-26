@@ -15,6 +15,8 @@ var position := {}
 var realtime := {}
 var tileset_url := ""
 var wallet := {"gold": 0, "essence": 0}
+## Custodial TON balance in nanoTON (asset-service), shown in the HUD.
+var ton_balance := 0
 var hp := 1
 var max_hp := 1
 var species := {} # int id -> Dictionary
@@ -40,6 +42,12 @@ func refresh_inventory() -> Dictionary:
 		wallet_changed.emit()
 		return r.data
 	return {}
+
+func refresh_ton() -> void:
+	var r := await Api.get_json("/v1/ton")
+	if r.ok:
+		ton_balance = int(r.data.get("balance", 0))
+		wallet_changed.emit()
 
 func set_vitals(new_hp: int, new_max: int) -> void:
 	hp = new_hp

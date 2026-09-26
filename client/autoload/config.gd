@@ -10,6 +10,8 @@ var ws_override := ""
 var dev_username := ""
 var autotest := false
 var shot_dir := ""
+## Draw the game rotated (as on a portrait phone) for testing: --rotate / ?rotate=1
+var force_rotate := false
 
 func _ready() -> void:
 	if OS.has_feature("web"):
@@ -25,6 +27,8 @@ func _ready() -> void:
 				dev_username = kv[1].uri_decode()
 			elif kv.size() == 2 and kv[0] == "autotest" and kv[1] == "1":
 				autotest = true
+			elif kv.size() == 2 and kv[0] == "rotate" and kv[1] == "1":
+				force_rotate = true
 	for arg in OS.get_cmdline_user_args() + OS.get_cmdline_args():
 		if arg.begins_with("--api="):
 			api_base = arg.substr(6).trim_suffix("/")
@@ -36,6 +40,8 @@ func _ready() -> void:
 			dev_username = arg.substr(11)
 		elif arg == "--autotest":
 			autotest = true
+		elif arg == "--rotate":
+			force_rotate = true
 		elif arg.begins_with("--shots="):
 			shot_dir = arg.substr(8)
 
