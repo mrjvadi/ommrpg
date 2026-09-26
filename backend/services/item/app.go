@@ -81,7 +81,7 @@ func view(s *stored) c.OwnedItem {
 }
 
 func (a *app) loadItem(ctx context.Context, q querier, id, owner string, lock bool) (*stored, error) {
-	sql := `SELECT ` + itemCols + ` FROM items WHERE id=$1 AND owner_id=$2`
+	sql := `SELECT ` + itemCols + ` FROM items WHERE id=$1 AND owner_id=$2 AND state='inventory'`
 	if lock {
 		sql += ` FOR UPDATE`
 	}
@@ -132,7 +132,7 @@ func credit(ctx context.Context, tx pgx.Tx, owner string, gold, essence int64, r
 }
 
 func (a *app) list(ctx context.Context, req c.ItemActionReq) (c.InventoryResp, error) {
-	rows, err := a.db.Query(ctx, `SELECT `+itemCols+` FROM items WHERE owner_id=$1 ORDER BY equipped_slot NULLS LAST, created_at DESC`, req.CharacterID)
+	rows, err := a.db.Query(ctx, `SELECT `+itemCols+` FROM items WHERE owner_id=$1 AND state='inventory' ORDER BY equipped_slot NULLS LAST, created_at DESC`, req.CharacterID)
 	if err != nil {
 		return c.InventoryResp{}, err
 	}
@@ -443,7 +443,7 @@ func (a *app) onEvent(ctx context.Context, ev bus.Event) error {
 			}
 		}
 		var count int
-		if err := tx.QueryRow(ctx, `SELECT count(*) FROM items WHERE owner_id=$1`, owner).Scan(&count); err != nil {
+		if err := tx.QueryRow(ctx, `SELECT count(*) FROM items WHERE owner_id=$1 AND state='inventory'`, owner).Scan(&count); err != nil {
 			return err
 		}
 		for i, d := range loot.Items {

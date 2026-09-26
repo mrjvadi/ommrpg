@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"math"
 	"net/http"
 	"os"
@@ -38,10 +39,20 @@ var (
 	n      = flag.Int("n", 1, "number of bots")
 	kills  = flag.Int("kills", 2, "monsters each bot should kill")
 	doDng  = flag.Bool("dungeon", true, "also run a dungeon")
+	scen   = flag.String("scenario", "play", "play | market")
+	natsU  = flag.String("nats", "nats://localhost:4222", "NATS url (market scenario)")
 )
 
 func main() {
 	flag.Parse()
+	if *scen == "market" {
+		if err := runMarket(*natsU); err != nil {
+			log.Printf("[market] FAIL: %v", err)
+			os.Exit(1)
+		}
+		log.Printf("[market] PASS")
+		return
+	}
 	var wg sync.WaitGroup
 	fails := 0
 	var mu sync.Mutex
@@ -73,16 +84,17 @@ func randHex(n int) string {
 }
 
 type bot struct {
-	name   string
-	log    *log.Logger
-	token  string
-	char   c.Character
-	world  c.WorldInfo
-	pos    c.Position
-	client *centrifuge.Client
-	grid   map[[2]int]bool
-	floor  *dungeon.Floor
-	notes  chan map[string]any
+	name    string
+	log     *log.Logger
+	token   string
+	account string
+	char    c.Character
+	world   c.WorldInfo
+	pos     c.Position
+	client  *centrifuge.Client
+	grid    map[[2]int]bool
+	floor   *dungeon.Floor
+	notes   chan map[string]any
 }
 
 // ---------------------------------------------------------------- http
@@ -569,3 +581,5 @@ func (b *bot) runDungeon() error {
 	b.log.Printf("left the dungeon back at (%.1f,%.1f)", b.pos.X, b.pos.Y)
 	return nil
 }
+
+func nil_logger() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard, nil)) }

@@ -62,7 +62,7 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - name: Databases
-        run: for db in identity world character item; do PGPASSWORD=ommrpg psql -h localhost -U ommrpg -d postgres -c "CREATE DATABASE $db"; done
+        run: for db in identity world character item asset; do PGPASSWORD=ommrpg psql -h localhost -U ommrpg -d postgres -c "CREATE DATABASE $db"; done
       - name: NATS and Centrifugo
         run: |
           docker run -d --name nats -p 4222:4222 nats:2.11-alpine -js
@@ -72,7 +72,7 @@ jobs:
       - name: Start services
         run: |
           PG_BASE=postgres://ommrpg:ommrpg@localhost:5432 ./scripts/run-local.sh
-          for p in $(seq 8101 8110); do
+          for p in $(seq 8101 8112); do
             for i in $(seq 1 60); do curl -sf localhost:$p/readyz && break; sleep 1; done
           done
       - name: Bots play the game

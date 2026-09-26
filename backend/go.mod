@@ -8,10 +8,12 @@ require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/nats-io/nats.go v1.54.0
 	github.com/redis/go-redis/v9 v9.22.0
+	github.com/xssnick/tonutils-go v1.18.0
 	go.mongodb.org/mongo-driver/v2 v2.9.1
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/centrifugal/protocol v0.21.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/nats-io/nkeys v0.4.16 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/planetscale/vtprotobuf v0.6.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/segmentio/encoding v0.5.4 // indirect

@@ -50,6 +50,12 @@ func main() {
 		bus.Handle(b, c.ItemEnhance, a.enhance),
 		bus.Handle(b, c.ItemSalvage, a.salvage),
 		bus.Handle(b, c.ItemBonuses, a.bonuses),
+		bus.Handle(b, c.ItemVault, a.vault),
+		bus.Handle(b, c.ItemUnvault, a.unvault),
+		bus.Handle(b, c.ItemClaim, a.claim),
+		bus.Handle(b, c.ItemSnapshot, a.snapshot),
+		bus.Handle(b, c.ItemGoldTransfer, a.goldTransfer),
+		bus.Handle(b, c.ItemAdminGrant, a.adminGrant),
 		b.Consume(s.Ctx, "item", []string{c.EvCharacterCreated, c.EvMonsterKilled, c.EvChestOpened}, a.onEvent),
 	} {
 		if err != nil {

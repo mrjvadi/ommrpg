@@ -12,7 +12,7 @@ LOGS="$ROOT/.data/logs"
 PIDS="$ROOT/.data/pids"
 mkdir -p "$LOGS" "$PIDS"
 
-SERVICES=(identity world sprite character item presence combat dungeon history gateway)
+SERVICES=(identity world sprite character item asset ton presence combat dungeon history gateway)
 
 if [[ "${1:-}" == "stop" ]]; then
   for s in "${SERVICES[@]}"; do
@@ -36,7 +36,7 @@ PG="${PG_BASE:-postgres://ommrpg:ommrpg@localhost:5432}"
 port=8101
 for s in "${SERVICES[@]}"; do
   db=""
-  case "$s" in identity|world|character|item) db="POSTGRES_DSN=$PG/$s?sslmode=disable";; esac
+  case "$s" in identity|world|character|item|asset) db="POSTGRES_DSN=$PG/$s?sslmode=disable";; esac
   env HEALTH_ADDR=":$port" $db "$ROOT/backend/bin/$s" > "$LOGS/$s.log" 2>&1 &
   echo $! > "$PIDS/$s"
   echo "started $s (pid $!, health :$port)"

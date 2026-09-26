@@ -212,6 +212,7 @@ func (a *app) get(ctx context.Context, req c.CharacterReq) (c.Character, error) 
 	if req.AccountID != "" && r.AccountID != req.AccountID {
 		return c.Character{}, apperr.New(apperr.Forbidden, "not your character")
 	}
+	a.looks.Delete(r.ID) // the owner's own view is always fresh
 	eq := a.equipment(ctx, r.ID)
 	d := progression.Derive(r.Level, r.Attributes, r.Hidden, eq.Bonuses)
 	r.Derived = &d

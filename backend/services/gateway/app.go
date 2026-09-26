@@ -74,6 +74,8 @@ func (a *app) routes() http.Handler {
 	mux.Handle("GET /api/v1/sprites/", http.StripPrefix("/api", a.sprites))
 	mux.Handle("POST /api/v1/sprites/character", http.StripPrefix("/api", a.sprites))
 
+	a.assetRoutes(mux)
+
 	// Centrifugo RPC proxy (internal network only, shared-secret protected)
 	mux.HandleFunc("POST /centrifugo/rpc", a.rpcProxy)
 	return mux
