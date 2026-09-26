@@ -1,5 +1,20 @@
 # Go
 /backend/bin/
+# binaries from "go build ./services/<name>" run inside backend/
+/backend/admin
+/backend/asset
+/backend/character
+/backend/combat
+/backend/dungeon
+/backend/gateway
+/backend/history
+/backend/identity
+/backend/item
+/backend/presence
+/backend/sprite
+/backend/ton
+/backend/world
+/backend/bot
 *.test
 *.out
 # local runtime data
