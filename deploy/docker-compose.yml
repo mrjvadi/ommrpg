@@ -154,6 +154,8 @@ services:
     environment:
       <<: *env
       SPRITE_CATALOG: /assets/lpc/catalog.json
+      # art rendered with Blender (tools/blender/build.sh)
+      SPRITE_PACK_DIR: /assets/pack
       SPRITE_CACHE_DIR: /cache
       # "default" lazily downloads LPC art from the catalog's pinned commit;
       # set to "off" and mount spritesheets at /cache/spritesheets for offline use

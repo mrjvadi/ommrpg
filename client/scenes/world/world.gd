@@ -39,6 +39,7 @@ var _timers := {"monsters": 0.0, "nearby": 0.0, "vitals": 0.0, "minimap": 0.0, "
 var _exit_armed := 0.0
 var _no_target_t := 0.0
 var _autotest_start := 0.0
+var _fade_cell := Vector2i(-99999, -99999)
 
 func _ready() -> void:
 	var world_root := Node2D.new()
@@ -89,8 +90,9 @@ func _exit_tree() -> void:
 
 func _fit_camera() -> void:
 	var vs := get_viewport().get_visible_rect().size
-	var z := minf(vs.x, vs.y) / (12.0 * TILE)
-	z = maxf(1.0, round(z * 2.0) / 2.0)
+	# about 13 tiles on the short side; quarter steps keep pixels even
+	var z := minf(vs.x, vs.y) / (13.0 * TILE)
+	z = maxf(1.0, round(z * 4.0) / 4.0)
 	camera.zoom = Vector2(z, z)
 
 # ---------------------------------------------------------------- zones
@@ -274,6 +276,10 @@ func _process(delta: float) -> void:
 	if _attack_held or Input.is_physical_key_pressed(KEY_SPACE):
 		_try_attack()
 	var near := map.nearest_interactive(pos)
+	var cell := Vector2i(floori(pos.x), floori(pos.y))
+	if cell != _fade_cell:
+		_fade_cell = cell
+		map.fade_around(cell)
 	hud.interact_btn.highlight = not near.is_empty()
 	hud.interact_btn.queue_redraw()
 	_update_target_frame()

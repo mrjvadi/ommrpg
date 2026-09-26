@@ -1,0 +1,532 @@
+{
+ "format": 1,
+ "icons": {
+  "amulet": "icons/amulet.71a4d53aa350.png",
+  "anvil": "icons/anvil.082bc038fd4c.png",
+  "attack": "icons/attack.64904dbbc91d.png",
+  "bag": "icons/bag.f3dcb2c79f0e.png",
+  "book": "icons/book.62fe41dd5949.png",
+  "chest": "icons/chest.58494734bec7.png",
+  "chronicle": "icons/chronicle.2a6827d45f5d.png",
+  "crown": "icons/crown.63a017fdcbc2.png",
+  "dungeon": "icons/dungeon.032cfae85360.png",
+  "essence": "icons/essence.1fb1048e3b7c.png",
+  "exit": "icons/exit.557f0a6979a7.png",
+  "feet": "icons/feet.56c73fe5e72e.png",
+  "fist": "icons/fist.5a16f88535da.png",
+  "gold": "icons/gold.d8e56c19fd9a.png",
+  "guild": "icons/guild.c124a17119c4.png",
+  "hammer": "icons/hammer.7bd0901c2cef.png",
+  "hands": "icons/hands.48e8a466bf07.png",
+  "head": "icons/head.441765385e9e.png",
+  "heart": "icons/heart.4bc02313178c.png",
+  "hero": "icons/hero.441765385e9e.png",
+  "home": "icons/home.831abfc89325.png",
+  "layout": "icons/layout.fb69a38ec004.png",
+  "legs": "icons/legs.686703e35bc1.png",
+  "map": "icons/map.4e666927057b.png",
+  "offhand": "icons/offhand.a70cf1887fdc.png",
+  "potion": "icons/potion.e009ac7a9d9a.png",
+  "ring": "icons/ring.737863833575.png",
+  "scroll": "icons/scroll.840ab0c3bbc3.png",
+  "settings": "icons/settings.35bc87e2c7a5.png",
+  "skull": "icons/skull.eb285b8f65c2.png",
+  "sparkle": "icons/sparkle.2ab7ab3a1301.png",
+  "star": "icons/star.2bcfad430e32.png",
+  "ton": "icons/ton.0bd7bd0e08b0.png",
+  "trade": "icons/trade.bc60ba802d6f.png",
+  "use": "icons/use.babd09a5db6b.png",
+  "vault": "icons/vault.dc0432aa62b0.png",
+  "wallet": "icons/wallet.a95566fff08f.png",
+  "weapon": "icons/weapon.24aeb5026eb0.png"
+ },
+ "props": {
+  "image": "props.fe31cba8e6f1.png",
+  "objects": {
+   "1": [
+    {
+     "at": [
+      5,
+      0
+     ],
+     "base": [
+      2,
+      3
+     ],
+     "size": [
+      5,
+      4
+     ]
+    },
+    {
+     "at": [
+      10,
+      0
+     ],
+     "base": [
+      2,
+      3
+     ],
+     "size": [
+      5,
+      4
+     ]
+    },
+    {
+     "at": [
+      15,
+      0
+     ],
+     "base": [
+      2,
+      3
+     ],
+     "size": [
+      5,
+      4
+     ]
+    }
+   ],
+   "10": [
+    {
+     "at": [
+      0,
+      0
+     ],
+     "base": [
+      2,
+      3
+     ],
+     "size": [
+      5,
+      5
+     ]
+    }
+   ],
+   "11": [
+    {
+     "at": [
+      18,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "12": [
+    {
+     "at": [
+      18,
+      5
+     ],
+     "base": [
+      1,
+      2
+     ],
+     "size": [
+      3,
+      3
+     ]
+    }
+   ],
+   "13": [
+    {
+     "at": [
+      21,
+      12
+     ],
+     "base": [
+      0,
+      1
+     ],
+     "size": [
+      1,
+      2
+     ]
+    }
+   ],
+   "14": [
+    {
+     "at": [
+      21,
+      5
+     ],
+     "base": [
+      0,
+      2
+     ],
+     "size": [
+      1,
+      3
+     ]
+    }
+   ],
+   "15": [
+    {
+     "at": [
+      0,
+      14
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "16": [
+    {
+     "at": [
+      0,
+      9
+     ],
+     "base": [
+      1,
+      2
+     ],
+     "size": [
+      3,
+      3
+     ]
+    }
+   ],
+   "17": [
+    {
+     "at": [
+      3,
+      14
+     ],
+     "base": [
+      0,
+      0
+     ],
+     "size": [
+      1,
+      1
+     ]
+    },
+    {
+     "at": [
+      4,
+      14
+     ],
+     "base": [
+      0,
+      0
+     ],
+     "size": [
+      1,
+      1
+     ]
+    }
+   ],
+   "2": [
+    {
+     "at": [
+      20,
+      0
+     ],
+     "base": [
+      1,
+      3
+     ],
+     "size": [
+      3,
+      4
+     ]
+    },
+    {
+     "at": [
+      0,
+      5
+     ],
+     "base": [
+      1,
+      3
+     ],
+     "size": [
+      3,
+      4
+     ]
+    },
+    {
+     "at": [
+      3,
+      5
+     ],
+     "base": [
+      1,
+      3
+     ],
+     "size": [
+      3,
+      4
+     ]
+    }
+   ],
+   "3": [
+    {
+     "at": [
+      3,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      6,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      9,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "4": [
+    {
+     "at": [
+      12,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      15,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      18,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "5": [
+    {
+     "at": [
+      21,
+      9
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      0,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      3,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "6": [
+    {
+     "at": [
+      6,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      9,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ],
+   "7": [
+    {
+     "at": [
+      6,
+      5
+     ],
+     "base": [
+      1,
+      2
+     ],
+     "size": [
+      3,
+      3
+     ]
+    },
+    {
+     "at": [
+      9,
+      5
+     ],
+     "base": [
+      1,
+      2
+     ],
+     "size": [
+      3,
+      3
+     ]
+    }
+   ],
+   "8": [
+    {
+     "at": [
+      12,
+      5
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      3
+     ]
+    },
+    {
+     "at": [
+      15,
+      5
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      3
+     ]
+    }
+   ],
+   "9": [
+    {
+     "at": [
+      12,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    },
+    {
+     "at": [
+      15,
+      12
+     ],
+     "base": [
+      1,
+      1
+     ],
+     "size": [
+      3,
+      2
+     ]
+    }
+   ]
+  },
+  "tile": 32
+ },
+ "version": "240629dcf448"
+}

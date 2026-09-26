@@ -28,3 +28,6 @@
 *.import.bak
 # env
 .env
+# Blender renders (tools/blender/build.sh); published files live in assets/pack
+/build/
+__pycache__/

@@ -35,6 +35,10 @@ func peek(url: String) -> Texture2D:
 	_start(url)
 	return null
 
+## True for the transparent stand-in returned when a download failed.
+func is_placeholder(tex: Texture2D) -> bool:
+	return tex == null or tex == _placeholder
+
 func fetch(url: String) -> Texture2D:
 	if _cache.has(url):
 		return _cache[url]

@@ -27,6 +27,13 @@ var entities: Node2D
 var chunks := {} # Vector2i -> {ground: PackedByteArray, objects: PackedByteArray}
 var floor_data := {} # dungeon floor, when inside one
 var in_dungeon := false
+## object id -> [atlas coords of each variant] in the Blender prop atlas
+## (tile source 1); empty when the art pack is not available.
+var _props := {}
+var _tileset: TileSet
+## atlas coords -> [size, base] of each prop sprite, for occlusion fading
+var _prop_rects := {}
+var _faded: Array = []
 
 func setup(tileset_texture: Texture2D) -> void:
 	var ts := TileSet.new()
@@ -42,6 +49,12 @@ func setup(tileset_texture: Texture2D) -> void:
 		# sort props by their base so characters walk behind/in front of them
 		src.get_tile_data(Vector2i(o, OBJECT_ROW), 0).y_sort_origin = 12
 	ts.add_source(src, 0)
+	_tileset = ts
+	_add_props()
+	if not Pack.loaded:
+		Pack.ready_changed.connect(func():
+			_add_props()
+			_repaint_objects())
 	ground = TileMapLayer.new()
 	ground.tile_set = ts
 	ground.z_index = -10
@@ -54,6 +67,79 @@ func setup(tileset_texture: Texture2D) -> void:
 	objects.y_sort_enabled = true
 	sorter.add_child(objects)
 	entities = sorter
+
+## World props rendered with Blender (see tools/blender/props.py): each
+## sprite spans several cells and is anchored on its own cell by
+## `texture_origin`, so a 5x4-tile oak stands on one tile (collision and
+## interaction are unchanged) and y-sorts against characters by its base.
+func _add_props() -> void:
+	var layout := Pack.prop_layout()
+	if layout.is_empty() or _tileset == null or _tileset.has_source(1):
+		return
+	var src := TileSetAtlasSource.new()
+	src.texture = Pack.props_texture
+	src.texture_region_size = Vector2i(TILE, TILE)
+	_tileset.add_source(src, 1)
+	for key in layout.keys():
+		var variants: Array = []
+		for e in layout[key]:
+			var at := Vector2i(int(e.at[0]), int(e.at[1]))
+			var sz := Vector2i(int(e.size[0]), int(e.size[1]))
+			src.create_tile(at, sz)
+			var td := src.get_tile_data(at, 0)
+			# drawn at cell_centre - size/2 - origin: put the base cell's centre on the cell
+			var base_center := Vector2(int(e.base[0]) * TILE + TILE / 2, int(e.base[1]) * TILE + TILE / 2)
+			td.texture_origin = Vector2i(base_center - Vector2(sz * TILE) / 2)
+			td.y_sort_origin = 12
+			# alternative 1: see-through, used while it hides the player
+			var alt := src.create_alternative_tile(at)
+			var ad := src.get_tile_data(at, alt)
+			ad.texture_origin = td.texture_origin
+			ad.y_sort_origin = 12
+			ad.modulate = Color(1, 1, 1, 0.42)
+			_prop_rects[at] = [sz, Vector2i(int(e.base[0]), int(e.base[1]))]
+			variants.append(at)
+		_props[int(key)] = variants
+
+func _set_object_cell(cell: Vector2i, o: int) -> void:
+	if o <= 0 or o >= OBJECT_COUNT:
+		objects.erase_cell(cell)
+	elif _props.has(o):
+		var v: Array = _props[o]
+		objects.set_cell(cell, 1, v[absi((cell.x * 92837111) ^ (cell.y * 689287499)) % v.size()])
+	else:
+		objects.set_cell(cell, 0, Vector2i(o, OBJECT_ROW))
+
+## Makes props standing in front of the player (their sprite covers the
+## player's tile and their base is further down the screen) see-through,
+## the way top-down games fade tree canopies and roofs.
+func fade_around(p: Vector2i) -> void:
+	var now: Array = []
+	if not _props.is_empty():
+		for y in range(p.y + 1, p.y + 5):
+			for x in range(p.x - 3, p.x + 4):
+				var cell := Vector2i(x, y)
+				if objects.get_cell_source_id(cell) != 1:
+					continue
+				var info = _prop_rects.get(objects.get_cell_atlas_coords(cell))
+				if info == null:
+					continue
+				var sz: Vector2i = info[0]
+				var base: Vector2i = info[1]
+				var top_left := cell - base
+				if Rect2i(top_left, sz).grow(0).has_point(p) or Rect2i(top_left, sz).has_point(p + Vector2i(0, -1)):
+					now.append(cell)
+	for cell in _faded:
+		if not cell in now and objects.get_cell_source_id(cell) == 1:
+			objects.set_cell(cell, 1, objects.get_cell_atlas_coords(cell), 0)
+	for cell in now:
+		objects.set_cell(cell, 1, objects.get_cell_atlas_coords(cell), 1)
+	_faded = now
+
+func _repaint_objects() -> void:
+	for cell in objects.get_used_cells():
+		var t := tile(cell.x, cell.y)
+		_set_object_cell(cell, int(t[1]))
 
 func clear() -> void:
 	ground.clear()
@@ -74,10 +160,7 @@ static func variant_of(x: int, y: int) -> int:
 func _paint(x: int, y: int, g: int, o: int) -> void:
 	var cell := Vector2i(x, y)
 	ground.set_cell(cell, 0, Vector2i(variant_of(x, y), clampi(g, 0, GROUND_COUNT - 1)))
-	if o > 0 and o < OBJECT_COUNT:
-		objects.set_cell(cell, 0, Vector2i(o, OBJECT_ROW))
-	else:
-		objects.erase_cell(cell)
+	_set_object_cell(cell, o)
 
 func add_chunk(data: Dictionary) -> void:
 	var t: Dictionary = data.terrain
@@ -136,10 +219,7 @@ func walkable_point(p: Vector2) -> bool:
 func set_object(x: int, y: int, o: int) -> void:
 	if in_dungeon:
 		floor_data.objects[y * int(floor_data.w) + x] = o
-	if o > 0:
-		objects.set_cell(Vector2i(x, y), 0, Vector2i(o, OBJECT_ROW))
-	else:
-		objects.erase_cell(Vector2i(x, y))
+	_set_object_cell(Vector2i(x, y), o)
 
 ## Nearest interactive object within `reach` tiles: {x, y, object} or {}.
 func nearest_interactive(p: Vector2, reach := 1.9) -> Dictionary:

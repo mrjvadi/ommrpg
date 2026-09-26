@@ -11,7 +11,11 @@
 * **Monsters, item icons, tiles**: generated procedurally by sprite-service
   (original work of this project), so the game is fully playable without any
   extra downloads.
-* **Interface icons**: [game-icons.net](https://game-icons.net) by Lorc,
+* **3D UI icons and world props**: modelled in code and rendered with
+  Blender (`tools/blender`, see [ART_PIPELINE.md](ART_PIPELINE.md)),
+  published to `assets/pack` and served by sprite-service. Original work of
+  this project.
+* **Fallback interface icons**: [game-icons.net](https://game-icons.net) by Lorc,
   Delapouite, Sbed and Zeromancer, **CC BY 3.0**
   (`client/assets/icons/SOURCES.txt` lists each file), recoloured by a
   shader. Credited in the in-game Credits window.

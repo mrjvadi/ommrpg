@@ -72,6 +72,7 @@ func main() {
 	mux.HandleFunc("GET /v1/sprites/icon.png", a.icon)
 	mux.HandleFunc("GET /v1/sprites/tileset.png", a.tilesetPNG)
 	mux.HandleFunc("GET /v1/sprites/tileset.json", a.tilesetJSON)
+	mux.Handle("GET /v1/sprites/pack/", packHandler(config.String("SPRITE_PACK_DIR", "../assets/pack")))
 	srv := &http.Server{
 		Addr:              config.String("HTTP_ADDR", ":8090"),
 		Handler:           httpx.Middleware(mux, config.List("CORS_ORIGINS", nil)),

@@ -52,7 +52,10 @@ badges, and currency pills with an orange "+".
   at the phone's real resolution, so the UI is sharp on every screen and
   the theme (buttons, panels, inputs, bars, popup menus, scroll bars) uses
   it everywhere.
-* **Icons** are white game-icons.net silhouettes (imported from SVG at
+* **Icons** come from the server's art pack: 3D icons rendered with
+  Blender (`autoload/pack.gd`, [ART_PIPELINE.md](ART_PIPELINE.md)). Until
+  they arrive, or if the server has none, the built-in icons are
+  white game-icons.net silhouettes (imported from SVG at
   128 px with mipmaps) recoloured by `ui_icon.gdshader`: a gradient fill,
   a dark outline and a soft shadow, with palettes such as gold, silver, TON
   blue and rarity colours.
@@ -67,6 +70,16 @@ badges, and currency pills with an orange "+".
 <img src="images/screen_market.png" width="360">
 <img src="images/screen_item.png" width="360">
 </p>
+
+## World props
+
+Trees, rocks, torches and every other world object come from the Blender
+prop atlas in the art pack. Each sprite spans several tiles at the proper
+scale (an oak is about 3 tiles tall next to a 1.5-tile hero), and it is
+anchored on its own cell with `texture_origin`, so collision and y-sorting
+are unchanged. Props in front of the player turn see-through (an
+alternative tile with 42% alpha). Without the pack the procedural 1-tile
+objects are used.
 
 ## Landscape and full screen
 
