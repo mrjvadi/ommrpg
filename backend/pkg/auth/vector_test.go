@@ -1,0 +1,3 @@
+package auth
+
+const knownHash = "6c344d9708f534bef213fe0c72a19befae9d3f3552b1afdc78acc4d13393f9e1"
