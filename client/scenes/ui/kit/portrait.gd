@@ -36,5 +36,9 @@ func _draw() -> void:
 		var src := Rect2(16, row * f + 6, 32, 30)
 		var dst_size := Vector2(r * 1.7, r * 1.6)
 		draw_texture_rect_region(texture, Rect2(c - Vector2(dst_size.x / 2, dst_size.y * 0.52), dst_size), src)
+	var ring := UiKit.part("ring")
+	if ring:
+		draw_texture_rect(ring, Rect2(c - Vector2(r, r), Vector2(r, r) * 2), false)
+		return
 	draw_arc(c, r - 6, 0, TAU, 64, UiKit.OUTLINE, 3.0, true)
 	draw_arc(c, r - 3, PI * 1.1, PI * 1.9, 32, Color(1, 1, 1, 0.4), 1.5, true)

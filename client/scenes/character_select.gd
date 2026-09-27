@@ -124,8 +124,7 @@ func _card(i: int) -> Control:
 	b.focus_mode = Control.FOCUS_NONE
 	var box := UiKit.panel_box(8)
 	if i == _selected:
-		box.rim_top = UiKit.GOLD
-		box.rim_bottom = UiKit.GOLD.darkened(0.5)
+		box = UiKit.slot_box("legendary") if Pack.has_part("slot_legendary") else UiKit.tint(box, Color(1.6, 1.3, 0.6))
 	for st in ["normal", "hover", "pressed"]:
 		b.add_theme_stylebox_override(st, box)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())

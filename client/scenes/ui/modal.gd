@@ -20,7 +20,7 @@ var fit_content := false
 var max_size := Vector2(1060, 620)
 var _panel: PanelContainer
 var _scroll: ScrollContainer
-var _ribbon: Ribbon
+var _ribbon: Control
 var _closing := false
 
 func _init(title: String) -> void:
@@ -30,7 +30,7 @@ func _init(title: String) -> void:
 	dim.color = Color(0, 0, 0, 0.62)
 	dim.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT: close())
 	add_child(UiKit.full_rect(dim))
-	_panel = UiKit.panel(16)
+	_panel = UiKit.window(16)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 	var col := VBoxContainer.new()
@@ -51,7 +51,15 @@ func _init(title: String) -> void:
 	col.add_child(_scroll)
 	_scroll.add_child(body)
 	# the ribbon title and close button float over the frame's top edge
-	_ribbon = Ribbon.new(Vector2(320, 50))
+	var plaque := Pack.nine("plaque", [8, 8, 8, 8], 0.55)
+	if plaque:
+		# metal title plaque from the GUI kit
+		var pl := Panel.new()
+		pl.add_theme_stylebox_override("panel", plaque)
+		pl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ribbon = pl
+	else:
+		_ribbon = Ribbon.new(Vector2(320, 50))
 	add_child(_ribbon)
 	_ribbon.add_child(title_label)
 	title_label.visible = true

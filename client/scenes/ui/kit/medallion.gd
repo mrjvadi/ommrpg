@@ -66,6 +66,15 @@ class Disc extends Control:
 	func _draw() -> void:
 		var c := size / 2
 		var r := size.x / 2
+		var ring := UiKit.part("ring_filled")
+		if ring and kind == "gray":
+			# ornate bronze ring from the GUI kit
+			if glow:
+				for i in 4:
+					draw_circle(c, r + 6 - i * 2, Color(1, 0.8, 0.3, 0.12))
+			draw_circle(c + Vector2(0, 3), r * 0.95, Color(0, 0, 0, 0.45))
+			draw_texture_rect(ring, Rect2(Vector2.ZERO, size), false, Color(0.75, 0.75, 0.75) if pressed else Color.WHITE)
+			return
 		var cols: Array = UiKit.BUTTON_COLORS.get(kind, UiKit.BUTTON_COLORS.gray)
 		if kind == "gray":
 			cols = [Color("5a4f47"), Color("2a2420"), Color("0d0908")]

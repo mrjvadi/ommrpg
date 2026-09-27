@@ -26,7 +26,7 @@ func _ready() -> void:
 	var sub := UiKit.label("A world that writes itself", 20, UiKit.MUTED, true, 5)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(sub)
-	var p := UiKit.panel(18)
+	var p := UiKit.window(18)
 	p.custom_minimum_size = Vector2(440, 0)
 	col.add_child(p)
 	_box = VBoxContainer.new()

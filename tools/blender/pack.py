@@ -29,6 +29,11 @@ def main():
     shutil.copy(art / "props.png", dst / f"props.{h}.png")
     layout = json.loads((art / "props.json").read_text())
     manifest["props"] = {"image": f"props.{h}.png", "tile": layout["tile"], "objects": layout["objects"]}
+    if (art / "gui.png").exists():
+        h = digest(art / "gui.png")
+        shutil.copy(art / "gui.png", dst / f"gui.{h}.png")
+        gui = json.loads((art / "gui.json").read_text())
+        manifest["gui"] = {"image": f"gui.{h}.png", "scale": gui["scale"], "parts": gui["parts"]}
     for f in sorted((art / "icons").glob("*.png")):
         h = digest(f)
         shutil.copy(f, dst / "icons" / f"{f.stem}.{h}.png")

@@ -49,13 +49,13 @@ static var _theme: Theme
 # ---------------------------------------------------------------- boxes
 
 ## Stone panel with a bronze rim (windows, cards).
-static func panel_box(pad := 14.0) -> FancyBox:
+static func fancy_panel(pad := 14.0) -> FancyBox:
 	var b := FancyBox.new(pad)
 	b.radius = 12
 	return b
 
 ## Recessed dark area inside a panel (stats, lists, inputs).
-static func inset_box(pad := 10.0) -> FancyBox:
+static func fancy_inset(pad := 10.0) -> FancyBox:
 	var b := FancyBox.new(pad)
 	b.radius = 8
 	b.outline = Color("0b0807")
@@ -72,7 +72,7 @@ static func inset_box(pad := 10.0) -> FancyBox:
 	return b
 
 ## Glossy coloured button face.
-static func button_box(kind: String, state := "normal", pad := 12.0) -> FancyBox:
+static func fancy_button(kind: String, state := "normal", pad := 12.0) -> FancyBox:
 	var c: Array = BUTTON_COLORS.get(kind, BUTTON_COLORS.gray)
 	var b := FancyBox.new(pad)
 	b.content_margin_top = pad * 0.45
@@ -112,7 +112,7 @@ static func button_box(kind: String, state := "normal", pad := 12.0) -> FancyBox
 	return b
 
 ## Metallic slot frame coloured by rarity.
-static func slot_box(rarity: String) -> FancyBox:
+static func fancy_slot(rarity: String) -> FancyBox:
 	var c: Array = RARITY_RIMS.get(rarity, RARITY_RIMS.empty)
 	var b := FancyBox.new(4)
 	b.radius = 10
@@ -132,7 +132,7 @@ static func slot_box(rarity: String) -> FancyBox:
 	return b
 
 ## Dark capsule behind currency values.
-static func pill_box() -> FancyBox:
+static func fancy_pill() -> FancyBox:
 	var b := FancyBox.new(6)
 	b.radius = 14
 	b.outline = Color("0b0807")
@@ -145,7 +145,7 @@ static func pill_box() -> FancyBox:
 	b.inset_shadow = 0.4
 	return b
 
-static func bar_bg() -> FancyBox:
+static func fancy_bar_bg() -> FancyBox:
 	var b := FancyBox.new(0)
 	b.radius = 7
 	b.outline = Color("0b0807")
@@ -160,7 +160,7 @@ static func bar_bg() -> FancyBox:
 	b.shadow_offset = Vector2(0, 1.5)
 	return b
 
-static func bar_fill(color: Color) -> FancyBox:
+static func fancy_bar_fill(color: Color) -> FancyBox:
 	var b := FancyBox.new(0)
 	b.radius = 6
 	b.outline = Color(0, 0, 0, 0)
@@ -172,6 +172,92 @@ static func bar_fill(color: Color) -> FancyBox:
 	b.inner_line = Color(0, 0, 0, 0)
 	b.highlight = Color(0, 0, 0, 0)
 	b.shadow = Color(0, 0, 0, 0)
+	return b
+
+# ---------------------------------------------------------------- kit boxes
+# The GUI kit rendered with Blender (Pack) when the server has it, the
+# code-drawn FancyBox look otherwise.
+
+static func _kit(part: String, pad: Array) -> StyleBox:
+	return Pack.nine(part, pad)
+
+## Big windows: carved iron frame with bronze corner brackets.
+static func window_box(pad := 16.0) -> StyleBox:
+	var k := Pack.nine("frame", [pad + 22, pad + 22, pad + 22, pad + 22], 0.62)
+	return k if k else fancy_panel(pad)
+
+## Cards and small panels.
+static func panel_box(pad := 14.0) -> StyleBox:
+	var k := _kit("inset", [pad + 4, pad + 4, pad + 4, pad + 4])
+	return k if k else fancy_panel(pad)
+
+## Recessed areas (stats, lists, inputs).
+static func inset_box(pad := 10.0) -> StyleBox:
+	var k := _kit("inset", [pad + 3, pad + 3, pad + 3, pad + 3])
+	return k if k else fancy_inset(pad)
+
+static func button_box(kind: String, state := "normal", pad := 12.0) -> StyleBox:
+	var k := _kit("button_%s_%s" % [kind, state], [pad + 6, 6 if state != "pressed" else 8, pad + 6, 7 if state != "pressed" else 5])
+	return k if k else fancy_button(kind, state, pad)
+
+static func tab_box(active: bool) -> StyleBox:
+	var k := _kit("tab_on" if active else "tab", [16, 6, 16, 6])
+	return k if k else fancy_button("orange" if active else "gray")
+
+static func slot_box(rarity: String) -> StyleBox:
+	var k := _kit("slot_" + rarity, [4, 4, 4, 4])
+	return k if k else fancy_slot(rarity)
+
+static func pill_box() -> StyleBox:
+	var k := _kit("pill", [10, 5, 10, 5])
+	return k if k else fancy_pill()
+
+static func bar_bg() -> StyleBox:
+	var k := _kit("bar_frame", [0, 0, 0, 0])
+	return k if k else fancy_bar_bg()
+
+## Glass tube of the nearest kit colour.
+static func bar_fill(color: Color) -> StyleBox:
+	var name := "red"
+	if color.s < 0.25:
+		name = "gold"
+	elif color.h > 0.52 and color.h < 0.72:
+		name = "blue"
+	elif color.h >= 0.72 and color.h < 0.92:
+		name = "purple"
+	elif color.h > 0.2 and color.h <= 0.52:
+		name = "green"
+	elif color.h > 0.06 and color.h <= 0.2:
+		name = "gold"
+	var k := _kit("bar_" + name, [0, 0, 0, 0])
+	if k:
+		# the tube sits inside the bar frame
+		(k as NineBox).inset = 3.5
+		return k
+	return fancy_bar_fill(color)
+
+## Title / level banner: the kit's metal plaque, or the red ribbon.
+static func banner(min_size := Vector2(300, 48)) -> Control:
+	var plaque := Pack.nine("plaque", [40, 8, 40, 8], 0.55)
+	if plaque == null:
+		return Ribbon.new(min_size)
+	var p := Panel.new()
+	p.add_theme_stylebox_override("panel", plaque)
+	p.custom_minimum_size = min_size
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return p
+
+## A kit part as a texture (rings, separators, close button) or null.
+static func part(name: String) -> Texture2D:
+	return Pack.part_texture(name)
+
+## Brightens / tints any box (kit or code-drawn) for selected or hover states.
+static func tint(b: StyleBox, c: Color) -> StyleBox:
+	if b is NineBox:
+		b.modulate = c
+	elif b is FancyBox:
+		b.rim_top = b.rim_top * c
+		b.rim_bottom = b.rim_bottom * c
 	return b
 
 ## Backwards-compatible flat box (used for small overlays).
@@ -217,11 +303,9 @@ static func theme() -> Theme:
 		t.set_color("font_disabled_color", type, DIM)
 	t.set_stylebox("panel", "PanelContainer", panel_box())
 	t.set_stylebox("panel", "Panel", panel_box())
-	var edit := inset_box(10)
+	var edit := inset_box(8)
 	t.set_stylebox("normal", "LineEdit", edit)
-	var edit_focus := edit.copy()
-	edit_focus.rim_bottom = GOLD.darkened(0.2)
-	edit_focus.rim_top = GOLD.darkened(0.5)
+	var edit_focus: StyleBox = tint(edit.duplicate() if edit is NineBox else (edit as FancyBox).copy(), Color(1.35, 1.2, 0.85))
 	t.set_stylebox("focus", "LineEdit", edit_focus)
 	t.set_stylebox("read_only", "LineEdit", edit)
 	t.set_font("font", "LineEdit", FONT_REGULAR)
@@ -248,7 +332,7 @@ static func theme() -> Theme:
 		t.set_stylebox(st, "CheckButton", StyleBoxEmpty.new())
 	var popup := panel_box(8)
 	t.set_stylebox("panel", "PopupMenu", popup)
-	t.set_stylebox("hover", "PopupMenu", button_box("orange", "normal", 6))
+	t.set_stylebox("hover", "PopupMenu", fancy_button("orange", "normal", 6))
 	t.set_color("font_color", "PopupMenu", TEXT)
 	t.set_color("font_hover_color", "PopupMenu", Color.WHITE)
 	t.set_font("font", "PopupMenu", FONT_BOLD)
@@ -351,6 +435,30 @@ static func panel(pad := 14.0) -> PanelContainer:
 		p.add_theme_stylebox_override("panel", panel_box(pad))
 	return p
 
+## A window-style panel with the carved frame.
+static func window(pad := 16.0) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", window_box(pad))
+	return p
+
+## Ornamental divider line.
+static func separator(width := 300.0) -> Control:
+	var tex := part("separator")
+	if tex == null:
+		var c := ColorRect.new()
+		c.color = Color(0.6, 0.45, 0.25, 0.5)
+		c.custom_minimum_size = Vector2(width, 2)
+		return c
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.custom_minimum_size = Vector2(width, 14)
+	tr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr
+
 static func inset(pad := 10.0) -> PanelContainer:
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", inset_box(pad))
@@ -391,14 +499,29 @@ static func badge(text := "!") -> Control:
 static func close_button(cb: Callable) -> Button:
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(46, 46)
-	for st in ["normal", "hover", "pressed"]:
-		var s := button_box("red", st, 0)
-		s.radius = 23
-		b.add_theme_stylebox_override(st, s)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	var x := CrossMark.new()
-	full_rect(x)
-	b.add_child(x)
+	var tex := part("close")
+	if tex:
+		for st in ["normal", "hover", "pressed"]:
+			b.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		full_rect(tr)
+		b.add_child(tr)
+		b.button_down.connect(func(): tr.modulate = Color(0.8, 0.8, 0.8))
+		b.button_up.connect(func(): tr.modulate = Color.WHITE)
+	else:
+		for st in ["normal", "hover", "pressed"]:
+			var s := fancy_button("red", st, 0)
+			s.radius = 23
+			b.add_theme_stylebox_override(st, s)
+		var x := CrossMark.new()
+		full_rect(x)
+		b.add_child(x)
 	b.pressed.connect(func(): Telegram.haptic("light"))
 	b.pressed.connect(cb)
 	return b
@@ -448,6 +571,9 @@ static func tabs(names: Array, current: String, on_pick: Callable, min_h := 44) 
 		var b := button(pair[1], func():
 			Telegram.haptic("selection")
 			on_pick.call(id), min_h, "orange" if id == current else "gray", pair[2] if pair.size() > 2 else "")
+		if Pack.has_part("tab"):
+			for st in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+				b.add_theme_stylebox_override(st, tab_box(id == current))
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.set_meta("tab", id)
 		row.add_child(b)
@@ -588,7 +714,7 @@ class Pill extends PanelContainer:
 			var plus := Button.new()
 			plus.custom_minimum_size = Vector2(30, 30)
 			for st in ["normal", "hover", "pressed"]:
-				var s := UiKit.button_box("orange", st, 0)
+				var s := UiKit.fancy_button("orange", st, 0)
 				s.radius = 7
 				s.shadow_offset = Vector2(0, 2)
 				plus.add_theme_stylebox_override(st, s)

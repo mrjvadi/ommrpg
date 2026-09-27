@@ -99,7 +99,7 @@ func _build() -> void:
 	var lvl := Control.new()
 	lvl.custom_minimum_size = Vector2(330, 48)
 	lvl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rib := Ribbon.new(Vector2(330, 48))
+	var rib := UiKit.banner(Vector2(330, 48))
 	lvl.add_child(UiKit.full_rect(rib))
 	level_label = UiKit.label("Lv. 1", 20, UiKit.TEXT, true, 6)
 	level_label.position = Vector2(34, 5)
@@ -122,9 +122,7 @@ func _build() -> void:
 
 	# minimap in a bronze frame
 	var mm_frame := PanelContainer.new()
-	var mm_box := UiKit.panel_box(4)
-	mm_box.radius = 10
-	mm_frame.add_theme_stylebox_override("panel", mm_box)
+	mm_frame.add_theme_stylebox_override("panel", UiKit.slot_box("common") if Pack.has_part("slot_common") else UiKit.panel_box(4))
 	minimap = TextureRect.new()
 	minimap.custom_minimum_size = Vector2(130, 130)
 	minimap.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

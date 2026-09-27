@@ -25,6 +25,9 @@ var _rot_box: SubViewportContainer
 var _rot_vp: SubViewport
 
 func _ready() -> void:
+	# the theme is built from the Blender GUI kit on the server; wait briefly
+	# for it (the built-in look is used if it does not arrive)
+	await Pack.wait_loaded(6.0)
 	UiKit.install()
 	stage.name = "Stage"
 	add_child(stage)

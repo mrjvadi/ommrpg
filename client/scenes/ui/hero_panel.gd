@@ -136,7 +136,7 @@ func _render_right() -> void:
 	# level ribbon with the experience bar
 	var lvl := Control.new()
 	lvl.custom_minimum_size = Vector2(0, 50)
-	var rib := Ribbon.new(Vector2(300, 50))
+	var rib := UiKit.banner(Vector2(300, 50))
 	lvl.add_child(UiKit.full_rect(rib))
 	var ll := UiKit.label("Lv. %d" % int(c.get("level", 1)), 22, UiKit.TEXT, true, 6)
 	ll.position = Vector2(40, 6)

@@ -8,4 +8,5 @@ OUT=${OUT:-build/art}
 python3 tools/blender/props.py "$OUT"
 python3 tools/blender/pixelate.py "$OUT"
 python3 tools/blender/icons.py "$OUT"
+python3 tools/blender/gui.py "$OUT"
 python3 tools/blender/pack.py "$OUT" assets/pack

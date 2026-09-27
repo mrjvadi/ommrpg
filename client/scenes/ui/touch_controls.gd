@@ -152,6 +152,9 @@ class TouchButton extends Control:
 				var a := PI + PI * i / 20.0
 				gl.append(c + Vector2(cos(a) * (r - 10), sin(a) * (r - 10) * 0.8 - 2))
 			draw_colored_polygon(gl, Color(1, 1, 1, 0.14))
+		var ring := UiKit.part("ring")
+		if ring:
+			draw_texture_rect(ring, Rect2(c - Vector2(r, r) * 1.04, Vector2(r, r) * 2.08), false, Color(1.2, 1.1, 0.9) if highlight else Color.WHITE)
 		if _icon == null and text != "":
 			var f := UiKit.FONT_BOLD
 			var fs := int(r * 0.42)

@@ -58,10 +58,9 @@ func set_item(it: Dictionary) -> void:
 	for st in ["normal", "hover", "pressed", "disabled"]:
 		var b := UiKit.slot_box(rar)
 		if st == "hover":
-			b.rim_top = b.rim_top.lightened(0.2)
+			UiKit.tint(b, Color(1.25, 1.2, 1.1))
 		elif st == "pressed":
-			b.rim_top = UiKit.GOLD
-			b.rim_bottom = UiKit.GOLD.darkened(0.4)
+			UiKit.tint(b, Color(1.5, 1.25, 0.7))
 		add_theme_stylebox_override(st, b)
 	add_theme_stylebox_override("hover_pressed", get_theme_stylebox("pressed"))
 	if _ph:
