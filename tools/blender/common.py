@@ -200,3 +200,113 @@ def transform_all(matrix):
 def render(path):
     bpy.context.scene.render.filepath = str(path)
     bpy.ops.render.render(write_still=True)
+
+
+# ---------------------------------------------------------------- weathered materials
+# Hand-painted MMO art reads as "real" because of three cues: dirt in the
+# crevices, worn bright edges and a surface that is not perfectly smooth.
+# These materials fake all three procedurally (Cycles only: AO + pointiness).
+
+def _bump(nt, strength, scale_fine=34.0, scale_hammer=12.0, hammered=True, vector=None):
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    if vector is not None:
+        nt.links.new(vector, noise.inputs["Vector"])
+    noise.inputs["Scale"].default_value = scale_fine
+    noise.inputs["Detail"].default_value = 6
+    height = noise.outputs["Fac"]
+    if hammered:
+        vor = nt.nodes.new("ShaderNodeTexVoronoi")
+        vor.feature = 'SMOOTH_F1'
+        vor.inputs["Scale"].default_value = scale_hammer
+        if vector is not None:
+            nt.links.new(vector, vor.inputs["Vector"])
+        mix = nt.nodes.new("ShaderNodeMath")
+        mix.operation = 'MULTIPLY_ADD'
+        nt.links.new(vor.outputs["Distance"], mix.inputs[0])
+        mix.inputs[1].default_value = 0.6
+        nt.links.new(noise.outputs["Fac"], mix.inputs[2])
+        height = mix.outputs[0]
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = strength
+    bump.inputs["Distance"].default_value = 0.02
+    nt.links.new(height, bump.inputs["Height"])
+    return bump.outputs["Normal"]
+
+
+def weathered(name, color, metal=1.0, rough=0.38, bump=0.25, dirt=0.75, wear=0.5,
+              hammered=True, emit=None, strength=0.0):
+    m = bpy.data.materials.new(name)
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    b.inputs["Metallic"].default_value = metal
+    b.inputs["Roughness"].default_value = rough
+    # crevice dirt: ambient occlusion darkens the base colour
+    ao = nt.nodes.new("ShaderNodeAmbientOcclusion")
+    ao.samples = 8
+    ao.inputs["Distance"].default_value = 0.06
+    ao_ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ao_ramp.color_ramp.elements[0].position = 0.35
+    ao_ramp.color_ramp.elements[0].color = (1 - dirt, 1 - dirt, 1 - dirt, 1)
+    ao_ramp.color_ramp.elements[1].position = 0.9
+    nt.links.new(ao.outputs["AO"], ao_ramp.inputs[0])
+    # worn edges: convex areas (pointiness) get brighter
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    edge_ramp = nt.nodes.new("ShaderNodeValToRGB")
+    edge_ramp.color_ramp.elements[0].position = 0.5
+    edge_ramp.color_ramp.elements[0].color = (1, 1, 1, 1)
+    edge_ramp.color_ramp.elements[1].position = 0.56
+    edge_ramp.color_ramp.elements[1].color = (1 + wear, 1 + wear * 0.9, 1 + wear * 0.7, 1)
+    nt.links.new(geo.outputs["Pointiness"], edge_ramp.inputs[0])
+    # large-scale colour variation
+    tex = nt.nodes.new("ShaderNodeTexNoise")
+    tex.inputs["Scale"].default_value = 4
+    # world-space coordinates: stretched primitives keep round dents/blotches
+    nt.links.new(geo.outputs["Position"], tex.inputs["Vector"])
+    var = nt.nodes.new("ShaderNodeValToRGB")
+    var.color_ramp.elements[0].color = (*[c * 0.8 for c in color], 1)
+    var.color_ramp.elements[1].color = (*[min(1, c * 1.15) for c in color], 1)
+    nt.links.new(tex.outputs["Fac"], var.inputs[0])
+    mul1 = nt.nodes.new("ShaderNodeMix")
+    mul1.data_type = 'RGBA'
+    mul1.blend_type = 'MULTIPLY'
+    mul1.inputs["Factor"].default_value = 1.0
+    nt.links.new(var.outputs[0], mul1.inputs[6])
+    nt.links.new(ao_ramp.outputs[0], mul1.inputs[7])
+    mul2 = nt.nodes.new("ShaderNodeMix")
+    mul2.data_type = 'RGBA'
+    mul2.blend_type = 'MULTIPLY'
+    mul2.inputs["Factor"].default_value = 1.0
+    nt.links.new(mul1.outputs[2], mul2.inputs[6])
+    nt.links.new(edge_ramp.outputs[0], mul2.inputs[7])
+    nt.links.new(mul2.outputs[2], b.inputs["Base Color"])
+    # scratches / roughness variation
+    rn = nt.nodes.new("ShaderNodeTexNoise")
+    rn.inputs["Scale"].default_value = 20
+    nt.links.new(geo.outputs["Position"], rn.inputs["Vector"])
+    rr = nt.nodes.new("ShaderNodeMapRange")
+    rr.inputs["To Min"].default_value = rough * 0.7
+    rr.inputs["To Max"].default_value = min(1.0, rough * 1.4)
+    nt.links.new(rn.outputs["Fac"], rr.inputs["Value"])
+    nt.links.new(rr.outputs["Result"], b.inputs["Roughness"])
+    if bump > 0:
+        nt.links.new(_bump(nt, bump, hammered=hammered, vector=geo.outputs["Position"]), b.inputs["Normal"])
+    if emit:
+        b.inputs["Emission Color"].default_value = (*emit, 1)
+        b.inputs["Emission Strength"].default_value = strength
+    return m
+
+
+def carved_stone(name, color, bump=0.45):
+    return weathered(name, color, metal=0.0, rough=0.92, bump=bump, dirt=0.85, wear=0.35, hammered=True)
+
+
+def jewel(name, color, strength=0.8):
+    m = bpy.data.materials.new(name)
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (*color, 1)
+    b.inputs["Roughness"].default_value = 0.04
+    b.inputs["Coat Weight"].default_value = 1.0
+    b.inputs["Transmission Weight"].default_value = 0.35
+    b.inputs["Emission Color"].default_value = (*color, 1)
+    b.inputs["Emission Strength"].default_value = strength
+    return m

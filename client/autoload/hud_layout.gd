@@ -13,20 +13,19 @@ const SLOTS := 3
 
 ## Element ids, their names in the editor, and the default layout.
 const NAMES := {
-	"profile": "Portrait & health", "level": "Level & XP", "wallet": "Currencies",
+	"status": "Portrait, health & XP", "wallet": "Currencies",
 	"minimap": "Minimap", "menu": "Menu", "joystick": "Joystick", "attack": "Attack",
 	"use": "Use", "target": "Target", "log": "Messages",
 }
 const DEFAULTS := {
-	"profile": {"x": 0.15, "y": 0.08, "s": 1.0, "v": true},
-	"level": {"x": 0.17, "y": 0.225, "s": 1.0, "v": true},
-	"wallet": {"x": 0.79, "y": 0.05, "s": 1.0, "v": true},
-	"minimap": {"x": 0.92, "y": 0.28, "s": 1.0, "v": true},
-	"menu": {"x": 0.5, "y": 0.93, "s": 1.0, "v": true, "d": "row"},
+	"status": {"x": 0.165, "y": 0.1, "s": 1.0, "v": true},
+	"wallet": {"x": 0.53, "y": 0.045, "s": 1.0, "v": true},
+	"minimap": {"x": 0.91, "y": 0.165, "s": 1.0, "v": true},
+	"menu": {"x": 0.5, "y": 0.92, "s": 1.0, "v": true, "d": "row"},
 	"joystick": {"x": 0.11, "y": 0.77, "s": 1.0, "v": true},
-	"attack": {"x": 0.91, "y": 0.78, "s": 1.0, "v": true},
-	"use": {"x": 0.78, "y": 0.9, "s": 1.0, "v": true},
-	"target": {"x": 0.5, "y": 0.16, "s": 1.0, "v": true},
+	"attack": {"x": 0.915, "y": 0.77, "s": 1.0, "v": true},
+	"use": {"x": 0.79, "y": 0.9, "s": 1.0, "v": true},
+	"target": {"x": 0.53, "y": 0.15, "s": 1.0, "v": true},
 	"log": {"x": 0.5, "y": 0.32, "s": 1.0, "v": true},
 }
 
@@ -104,7 +103,7 @@ func _data() -> Dictionary:
 	var out := {}
 	for i in slots.keys():
 		out[str(i)] = slots[i]
-	return {"version": 2, "active": active, "slots": out}
+	return {"version": 3, "active": active, "slots": out}
 
 func _save_local() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)

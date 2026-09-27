@@ -121,7 +121,7 @@ func _market() -> void:
 	side.add_child(f)
 	var fcol := VBoxContainer.new()
 	f.add_child(fcol)
-	fcol.add_child(UiKit.label("Filters", 18, UiKit.GOLD))
+	fcol.add_child(UiKit.heading("Filters", 16))
 	fcol.add_child(_option(["", "TON", "GOLD"], ["Any currency", "TON", "Gold"], _filters.currency, func(v): _filters.currency = v))
 	fcol.add_child(_option([""] + Sprites.RARITIES, ["Any rarity"] + Sprites.RARITIES.map(func(x): return str(x).capitalize()), _filters.rarity, func(v): _filters.rarity = v))
 	fcol.add_child(_option(SLOTS, ["Any slot"] + SLOTS.slice(1).map(func(x): return str(x).capitalize()), _filters.slot, func(v): _filters.slot = v))
@@ -161,7 +161,7 @@ func _option(values: Array, labels: Array, current: String, set_value: Callable)
 ## A card: slot on the left, name / details / action on the right.
 func _card(snap: Dictionary, extra: String) -> Array:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UiKit.panel_box(10))
+	p.add_theme_stylebox_override("panel", UiKit.card_box(8))
 	p.custom_minimum_size.x = 280
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -349,14 +349,14 @@ func _render_wallet() -> void:
 	bcol.add_child(UiKit.label(sub, 14, UiKit.MUTED, true, 3))
 	bal.add_child(bcol)
 	left.add_child(bal)
-	left.add_child(UiKit.label("Deposit", 20, UiKit.GOLD))
+	left.add_child(UiKit.heading("Deposit", 18))
 	left.add_child(UiKit.para("Send TON to this address with the memo (comment) below. The memo identifies your account; transfers without it cannot be credited.", 14, UiKit.MUTED))
 	left.add_child(_copy_row("Address", str(w.deposit_address)))
 	left.add_child(_copy_row("Memo", str(w.deposit_memo)))
 	left.add_child(UiKit.button("Open in TON wallet", func():
 		Telegram.open_link("https://app.tonkeeper.com/transfer/%s?text=%s" % [str(w.deposit_address), str(w.deposit_memo).uri_encode()]), 48, "blue", "wallet"))
 
-	right.add_child(UiKit.label("Withdraw", 20, UiKit.GOLD))
+	right.add_child(UiKit.heading("Withdraw", 18))
 	if not p.get("withdraw_enabled", true):
 		right.add_child(UiKit.para("Withdrawals are paused by the operators.", 15, UiKit.DANGER))
 	else:

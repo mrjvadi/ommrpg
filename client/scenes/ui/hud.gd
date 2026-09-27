@@ -18,6 +18,7 @@ var items := {} # id -> HudItem
 var joystick: VirtualJoystick
 var attack_btn: VirtualJoystick.TouchButton
 var interact_btn: VirtualJoystick.TouchButton
+var status: StatusPlate
 var hp_bar: ProgressBar
 var xp_bar: ProgressBar
 var level_label: Label
@@ -27,7 +28,7 @@ var portrait: Portrait
 var gold_pill: UiKit.Pill
 var essence_pill: UiKit.Pill
 var ton_pill: UiKit.Pill
-var minimap: TextureRect
+var minimap: MinimapFrame
 var log_box: VBoxContainer
 var menu_box: BoxContainer
 var menu_buttons := {} # action -> Medallion
@@ -70,45 +71,16 @@ func _item(id: String, content: Control) -> Control:
 	return content
 
 func _build() -> void:
-	# portrait, name and health
-	var prof := HBoxContainer.new()
-	prof.add_theme_constant_override("separation", 6)
-	portrait = Portrait.new(76)
-	var ptap := Button.new()
-	ptap.flat = true
-	ptap.focus_mode = Control.FOCUS_NONE
-	ptap.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	ptap.custom_minimum_size = portrait.custom_minimum_size
-	ptap.add_child(portrait)
-	ptap.pressed.connect(func(): menu.emit("character"))
-	prof.add_child(ptap)
-	var pcol := VBoxContainer.new()
-	pcol.add_theme_constant_override("separation", 2)
-	pcol.alignment = BoxContainer.ALIGNMENT_CENTER
-	name_label = UiKit.label("", 21, UiKit.TEXT, true, 6)
-	pcol.add_child(name_label)
-	class_label = UiKit.label("", 13, UiKit.MUTED, true, 4)
-	pcol.add_child(class_label)
-	hp_bar = UiKit.value_bar(Color("e0413a"), 24)
-	hp_bar.custom_minimum_size.x = 200
-	pcol.add_child(hp_bar)
-	prof.add_child(pcol)
-	_item("profile", prof)
-
-	# level ribbon with the experience bar
-	var lvl := Control.new()
-	lvl.custom_minimum_size = Vector2(330, 48)
-	lvl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rib := UiKit.banner(Vector2(330, 48))
-	lvl.add_child(UiKit.full_rect(rib))
-	level_label = UiKit.label("Lv. 1", 20, UiKit.TEXT, true, 6)
-	level_label.position = Vector2(34, 5)
-	lvl.add_child(level_label)
-	xp_bar = UiKit.value_bar(Color("3a8fe0"), 22)
-	xp_bar.position = Vector2(108, 8)
-	xp_bar.size = Vector2(196, 22)
-	lvl.add_child(xp_bar)
-	_item("level", lvl)
+	# character plate: portrait orb, name, health and experience
+	status = StatusPlate.new(0.42)
+	status.portrait_pressed.connect(func(): menu.emit("character"))
+	hp_bar = status.hp_bar
+	xp_bar = status.xp_bar
+	level_label = status.level_label
+	name_label = status.name_label
+	class_label = status.class_label
+	portrait = status.portrait
+	_item("status", status)
 
 	# currencies
 	var wallet := HBoxContainer.new()
@@ -120,19 +92,9 @@ func _build() -> void:
 		wallet.add_child(p)
 	_item("wallet", wallet)
 
-	# minimap in a bronze frame
-	var mm_frame := PanelContainer.new()
-	mm_frame.add_theme_stylebox_override("panel", UiKit.slot_box("common") if Pack.has_part("slot_common") else UiKit.panel_box(4))
-	minimap = TextureRect.new()
-	minimap.custom_minimum_size = Vector2(130, 130)
-	minimap.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	minimap.stretch_mode = TextureRect.STRETCH_SCALE
-	minimap.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	mm_frame.add_child(minimap)
-	var dot := MapDot.new()
-	dot.position = Vector2(65, 65)
-	minimap.add_child(dot)
-	_item("minimap", mm_frame)
+	# round minimap with the zone plaque
+	minimap = MinimapFrame.new(0.42)
+	_item("minimap", minimap)
 
 	# menu medallions
 	menu_box = HBoxContainer.new()
@@ -152,15 +114,16 @@ func _build() -> void:
 
 	# target frame (shown while a monster is targeted)
 	target_panel = PanelContainer.new()
-	target_panel.add_theme_stylebox_override("panel", UiKit.panel_box(8))
+	target_panel.add_theme_stylebox_override("panel", UiKit.tooltip_box(4))
 	var tcol := VBoxContainer.new()
 	tcol.add_theme_constant_override("separation", 2)
 	target_panel.add_child(tcol)
-	target_name = UiKit.label("", 17, UiKit.TEXT, true, 5)
+	target_name = UiKit.label("", 16, UiKit.TEXT, true, 3)
+	target_name.add_theme_font_override("font", UiKit.FONT_TITLE)
 	target_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tcol.add_child(target_name)
-	target_bar = UiKit.value_bar(Color("c9352b"), 18)
-	target_bar.custom_minimum_size.x = 240
+	target_bar = UiKit.value_bar(Color("c9352b"), 20)
+	target_bar.custom_minimum_size.x = 230
 	tcol.add_child(target_bar)
 	target_panel.visible = false
 	_item("target", target_panel)
@@ -236,7 +199,7 @@ func _on_character() -> void:
 	var cls := str(c.get("class", ""))
 	name_label.text = str(c.name)
 	class_label.text = cls.capitalize() if cls != "" else "Wanderer"
-	level_label.text = "Lv. %d" % int(c.level)
+	level_label.text = str(int(c.level))
 	UiKit.set_bar(xp_bar, int(c.get("xp", 0)), max(1, int(c.get("xp_to_next", 1))), "%s / %s" % [UiKit.short(c.get("xp", 0)), UiKit.short(c.get("xp_to_next", 1))])
 	portrait.show_recipe(c.appearance)
 	set_badge("character", int(c.get("free_points", 0)) > 0)
@@ -250,7 +213,10 @@ func _on_vitals() -> void:
 	UiKit.set_bar(hp_bar, Game.hp, Game.max_hp)
 
 func set_minimap(img: Image) -> void:
-	minimap.texture = ImageTexture.create_from_image(img)
+	minimap.set_map(ImageTexture.create_from_image(img))
+
+func set_zone(text: String) -> void:
+	minimap.set_zone(text)
 
 ## Target frame: pass an empty name to hide it.
 func set_target(tname: String, hp: int, max_hp: int, color := UiKit.TEXT) -> void:
@@ -621,14 +587,6 @@ class Guides extends Control:
 			else:
 				draw_line(Vector2(sr.position.x, g[1]), Vector2(sr.end.x, g[1]), Color("4de0ff"), 2.0)
 
-
-class MapDot extends Control:
-	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		draw_circle(Vector2.ZERO, 5, UiKit.OUTLINE)
-		draw_circle(Vector2.ZERO, 3.5, Color("ffe27a"))
 
 ## True when a screen point is over a visible HUD element.
 func is_over_ui(p: Vector2) -> bool:

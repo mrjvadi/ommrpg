@@ -1,7 +1,7 @@
 class_name Modal
 extends Control
-## A game window: dimmed screen, stone frame with a bronze rim, the title on
-## a red ribbon and a round close button. Windows are opened through
+## A game window: dimmed screen, the kit's carved iron frame, a bronze
+## crest over an engraved title plaque and a jewel close button. Windows are opened through
 ## `Popups.open()` so the Telegram Back button, Escape and the popup stack
 ## all work the same everywhere.
 ##
@@ -21,6 +21,7 @@ var max_size := Vector2(1060, 620)
 var _panel: PanelContainer
 var _scroll: ScrollContainer
 var _ribbon: Control
+var _crest: TextureRect
 var _closing := false
 
 func _init(title: String) -> void:
@@ -39,7 +40,7 @@ func _init(title: String) -> void:
 	header = HBoxContainer.new()
 	header.custom_minimum_size.y = 34
 	col.add_child(header)
-	title_label = UiKit.title(title, 26)
+	title_label = UiKit.title(title, 22)
 	title_label.visible = false
 	header.add_child(UiKit.hspacer())
 	body = VBoxContainer.new()
@@ -50,8 +51,17 @@ func _init(title: String) -> void:
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_child(_scroll)
 	_scroll.add_child(body)
-	# the ribbon title and close button float over the frame's top edge
-	var plaque := Pack.nine("plaque", [8, 8, 8, 8], 0.55)
+	# the crest, title plaque and close button float over the frame's top edge
+	var crest := UiKit.part("crest")
+	if crest:
+		_crest = TextureRect.new()
+		_crest.texture = crest
+		_crest.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_crest.stretch_mode = TextureRect.STRETCH_SCALE
+		_crest.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		_crest.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_crest)
+	var plaque := Pack.nine("plaque", [8, 8, 8, 8], 0.5)
 	if plaque:
 		# metal title plaque from the GUI kit
 		var pl := Panel.new()
@@ -85,21 +95,26 @@ func _ready() -> void:
 func _fit() -> void:
 	var vs := get_viewport_rect().size
 	var ins := Telegram.insets_for(get_viewport())
-	var avail := Vector2(vs.x - ins.w - ins.y - 24.0, vs.y - ins.x - ins.z - 44.0)
+	var top := 50.0 if _crest else 30.0
+	var avail := Vector2(vs.x - ins.w - ins.y - 24.0, vs.y - ins.x - ins.z - top - 14.0)
 	var sz := Vector2(minf(avail.x, max_size.x), minf(avail.y, max_size.y))
 	if fit_content:
 		var need := body.get_combined_minimum_size().y + header.get_combined_minimum_size().y + 52.0
 		sz.y = minf(sz.y, maxf(200.0, need))
 	_panel.custom_minimum_size = sz
 	_panel.size = sz
-	_panel.position = Vector2(ins.w + (vs.x - ins.w - ins.y - sz.x) / 2, ins.x + 30.0 + (avail.y - sz.y) / 2)
+	_panel.position = Vector2(ins.w + (vs.x - ins.w - ins.y - sz.x) / 2, ins.x + top + (avail.y - sz.y) / 2)
 	_panel.pivot_offset = sz / 2
 	_scroll.custom_minimum_size = Vector2(0, sz.y - 84.0)
 	var rw := clampf(title_label.get_combined_minimum_size().x + 110.0, 260.0, sz.x * 0.7)
 	_ribbon.size = Vector2(rw, 50)
 	_ribbon.position = Vector2(_panel.position.x + (sz.x - rw) / 2, _panel.position.y - 22)
-	title_label.position = Vector2(0, 2)
-	title_label.size = Vector2(rw, 40)
+	title_label.position = Vector2(0, 3)
+	title_label.size = Vector2(rw, 44)
+	if _crest:
+		var cs := Pack.part_size("crest") * 0.42
+		_crest.size = cs
+		_crest.position = Vector2(_panel.position.x + (sz.x - cs.x) / 2, _ribbon.position.y + 30 - cs.y)
 	var x: Control = get_node("Close")
 	x.position = Vector2(_panel.position.x + sz.x - 34, _panel.position.y - 14)
 

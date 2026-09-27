@@ -50,12 +50,19 @@ func _draw() -> void:
 	var c := size / 2
 	var r := radius + 20
 	var active := _idx != -1
-	# stone socket with a bronze ring
-	draw_circle(c + Vector2(0, 3), r, Color(0, 0, 0, 0.35))
-	draw_circle(c, r, Color(0.05, 0.035, 0.03, 0.55))
-	draw_arc(c, r - 2, 0, TAU, 64, Color("0d0908"), 4.0, true)
-	draw_arc(c, r - 5, 0, TAU, 64, Color("a57d4c") if not active else Color("ffd35a"), 3.0, true)
-	draw_arc(c, r - 9, 0, TAU, 64, Color(0, 0, 0, 0.5), 2.0, true)
+	var frame := UiKit.part("orb_small")
+	if frame:
+		# the kit's bronze ring around a dark glass socket
+		var fr := r * 1.12
+		draw_circle(c, r * 0.95, Color(0.03, 0.025, 0.02, 0.5))
+		draw_texture_rect(frame, Rect2(c - Vector2(fr, fr), Vector2(fr, fr) * 2), false, Color(1, 1, 1, 0.95) if active else Color(1, 1, 1, 0.75))
+	else:
+		# stone socket with a bronze ring
+		draw_circle(c + Vector2(0, 3), r, Color(0, 0, 0, 0.35))
+		draw_circle(c, r, Color(0.05, 0.035, 0.03, 0.55))
+		draw_arc(c, r - 2, 0, TAU, 64, Color("0d0908"), 4.0, true)
+		draw_arc(c, r - 5, 0, TAU, 64, Color("a57d4c") if not active else Color("ffd35a"), 3.0, true)
+		draw_arc(c, r - 9, 0, TAU, 64, Color(0, 0, 0, 0.5), 2.0, true)
 	# direction notches
 	for i in 4:
 		var a := TAU * i / 4.0 - PI / 2
@@ -135,6 +142,27 @@ class TouchButton extends Control:
 			var pulse := 0.5 + 0.5 * sin(_t * 5.0)
 			for i in 5:
 				draw_circle(c, r + 10 - i * 2, Color(1, 0.82, 0.3, 0.06 + 0.05 * pulse))
+		var orb := "orb_big" if size.x >= 90 else "orb_small"
+		var frame := UiKit.part(orb)
+		if frame:
+			# a glass orb set in the kit's jewelled bronze ring
+			var hole := r * float(Pack.anchors(orb).get("hole", [0, 0, 60])[2]) / (Pack.part_size(orb).x / 2)
+			var t2 := color.lightened(0.25)
+			var b2 := color.darkened(0.55)
+			if held:
+				var tmp2 := t2
+				t2 = b2
+				b2 = tmp2
+			draw_circle(c + Vector2(0, 4), r * 0.95, Color(0, 0, 0, 0.45))
+			_disc(c, hole + 2, t2, b2)
+			if not held:
+				var hl := PackedVector2Array()
+				for i in 21:
+					var a2 := PI + PI * i / 20.0
+					hl.append(c + Vector2(cos(a2) * hole * 0.8, sin(a2) * hole * 0.62 - hole * 0.08))
+				draw_colored_polygon(hl, Color(1, 1, 1, 0.13))
+			draw_texture_rect(frame, Rect2(Vector2.ZERO, size), false, Color(1.25, 1.15, 0.95) if highlight else Color.WHITE)
+			return
 		draw_circle(c + Vector2(0, 4), r, Color(0, 0, 0, 0.45))
 		draw_circle(c, r, UiKit.OUTLINE)
 		_disc(c, r - 2, Color("e2bd7e") if not highlight else Color("ffe27a"), Color("6a4424"))
@@ -152,9 +180,6 @@ class TouchButton extends Control:
 				var a := PI + PI * i / 20.0
 				gl.append(c + Vector2(cos(a) * (r - 10), sin(a) * (r - 10) * 0.8 - 2))
 			draw_colored_polygon(gl, Color(1, 1, 1, 0.14))
-		var ring := UiKit.part("ring")
-		if ring:
-			draw_texture_rect(ring, Rect2(c - Vector2(r, r) * 1.04, Vector2(r, r) * 2.08), false, Color(1.2, 1.1, 0.9) if highlight else Color.WHITE)
 		if _icon == null and text != "":
 			var f := UiKit.FONT_BOLD
 			var fs := int(r * 0.42)

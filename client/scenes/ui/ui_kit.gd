@@ -1,18 +1,21 @@
 class_name UiKit
 extends RefCounted
-## The game's look: dark dungeon stone, bronze rims, chunky outlined text,
-## glossy coloured buttons and rarity-framed slots. Every screen is built in
-## code from these factories so the style stays consistent.
+## The game's look, after classic MMO interfaces (Metin2, Aion): carved
+## iron and bronze frames rendered in Blender (Pack GUI kit), recessed stone
+## panels, engraved metal buttons, jewelled sockets, Cinzel capitals for
+## titles and a warm parchment palette. Every screen is built in code from
+## these factories so the style stays consistent. Without the kit the same
+## shapes are drawn in code (FancyBox).
 
 # palette
 const BG := Color("1a1614")
 const PANEL := Color("2c2724")
 const PANEL_LIGHT := Color("3d3531")
-const ACCENT := Color("ffd35a")
-const GOLD := Color("ffd35a")
-const TEXT := Color("fff4e2")
-const MUTED := Color("b9ab98")
-const DIM := Color("7d7166")
+const ACCENT := Color("f2c55c")
+const GOLD := Color("f2c55c")
+const TEXT := Color("f4e8cf")
+const MUTED := Color("b3a386")
+const DIM := Color("7a6e5d")
 const DANGER := Color("ff5a4e")
 const GOOD := Color("6ee07a")
 const INFO := Color("7cc4ff")
@@ -38,8 +41,11 @@ const BUTTON_COLORS := {
 	"gray": [Color("7d736b"), Color("4a423d"), Color("141010")],
 }
 
-const FONT_BOLD := preload("res://assets/fonts/Vazirmatn-Bold.ttf")
-const FONT_REGULAR := preload("res://assets/fonts/Vazirmatn-Regular.ttf")
+## Cinzel capitals (titles, buttons, plaques), Alegreya Sans for text; both
+## fall back to Vazirmatn for Persian.
+const FONT_TITLE := preload("res://assets/fonts/title.tres")
+const FONT_BOLD := preload("res://assets/fonts/body_bold.tres")
+const FONT_REGULAR := preload("res://assets/fonts/body.tres")
 const STONE := preload("res://assets/ui/stone.png")
 const SWITCH_ON := preload("res://assets/ui/switch_on.png")
 const SWITCH_OFF := preload("res://assets/ui/switch_off.png")
@@ -178,30 +184,56 @@ static func fancy_bar_fill(color: Color) -> FancyBox:
 # The GUI kit rendered with Blender (Pack) when the server has it, the
 # code-drawn FancyBox look otherwise.
 
-static func _kit(part: String, pad: Array) -> StyleBox:
-	return Pack.nine(part, pad)
+static func _kit(part: String, pad: Array, scale := 0.0) -> StyleBox:
+	return Pack.nine(part, pad, scale)
 
-## Big windows: carved iron frame with bronze corner brackets.
+## Padding that clears a part's painted border (its "content" anchor).
+static func _pad(part: String, extra: float, scale := 0.5) -> Array:
+	var c := float(Pack.anchors(part).get("content", 8)) * scale + extra
+	return [c, c, c, c]
+
+## Big windows: carved iron frame with an engraved band and jewelled
+## bronze corner brackets.
 static func window_box(pad := 16.0) -> StyleBox:
-	var k := Pack.nine("frame", [pad + 22, pad + 22, pad + 22, pad + 22], 0.62)
+	var k := _kit("window", _pad("window", pad), 0.5)
 	return k if k else fancy_panel(pad)
 
-## Cards and small panels.
+## Cards and raised panels (item cards, character cards).
+static func card_box(pad := 12.0) -> StyleBox:
+	var k := _kit("card", _pad("card", pad))
+	return k if k else fancy_panel(pad)
+
+## Panels inside windows.
 static func panel_box(pad := 14.0) -> StyleBox:
-	var k := _kit("inset", [pad + 4, pad + 4, pad + 4, pad + 4])
+	var k := _kit("panel", _pad("panel", pad))
 	return k if k else fancy_panel(pad)
 
-## Recessed areas (stats, lists, inputs).
+## Recessed areas (stats, lists).
 static func inset_box(pad := 10.0) -> StyleBox:
-	var k := _kit("inset", [pad + 3, pad + 3, pad + 3, pad + 3])
+	var k := _kit("panel", _pad("panel", pad))
 	return k if k else fancy_inset(pad)
 
+## Text fields.
+static func input_box(pad := 8.0) -> StyleBox:
+	var k := _kit("input", _pad("input", pad))
+	return k if k else fancy_inset(pad)
+
+## Tooltips and small floating notes.
+static func tooltip_box(pad := 8.0) -> StyleBox:
+	var k := _kit("tooltip", _pad("tooltip", pad))
+	return k if k else fancy_panel(pad)
+
+## Translucent chat / log panel.
+static func chat_box(pad := 6.0) -> StyleBox:
+	var k := _kit("chat", _pad("chat", pad))
+	return k if k else box(Color(0, 0, 0, 0.45), 6, 0, Color.TRANSPARENT, int(pad))
+
 static func button_box(kind: String, state := "normal", pad := 12.0) -> StyleBox:
-	var k := _kit("button_%s_%s" % [kind, state], [pad + 6, 6 if state != "pressed" else 8, pad + 6, 7 if state != "pressed" else 5])
+	var k := _kit("button_%s_%s" % [kind, state], [pad + 8, 6 if state != "pressed" else 8, pad + 8, 7 if state != "pressed" else 5])
 	return k if k else fancy_button(kind, state, pad)
 
 static func tab_box(active: bool) -> StyleBox:
-	var k := _kit("tab_on" if active else "tab", [16, 6, 16, 6])
+	var k := _kit("tab_on" if active else "tab", [18, 7, 18, 6])
 	return k if k else fancy_button("orange" if active else "gray")
 
 static func slot_box(rarity: String) -> StyleBox:
@@ -209,7 +241,7 @@ static func slot_box(rarity: String) -> StyleBox:
 	return k if k else fancy_slot(rarity)
 
 static func pill_box() -> StyleBox:
-	var k := _kit("pill", [10, 5, 10, 5])
+	var k := _kit("pill", [36, 4, 12, 4])
 	return k if k else fancy_pill()
 
 static func bar_bg() -> StyleBox:
@@ -232,13 +264,13 @@ static func bar_fill(color: Color) -> StyleBox:
 	var k := _kit("bar_" + name, [0, 0, 0, 0])
 	if k:
 		# the tube sits inside the bar frame
-		(k as NineBox).inset = 3.5
+		(k as NineBox).inset = 4.0
 		return k
 	return fancy_bar_fill(color)
 
 ## Title / level banner: the kit's metal plaque, or the red ribbon.
 static func banner(min_size := Vector2(300, 48)) -> Control:
-	var plaque := Pack.nine("plaque", [40, 8, 40, 8], 0.55)
+	var plaque := Pack.nine("plaque", [40, 8, 40, 8], 0.5)
 	if plaque == null:
 		return Ribbon.new(min_size)
 	var p := Panel.new()
@@ -284,7 +316,9 @@ static func theme() -> Theme:
 	t.default_font_size = 18
 	for type in ["Label", "Button", "CheckButton", "OptionButton", "LinkButton", "CheckBox"]:
 		t.set_color("font_outline_color", type, OUTLINE)
-		t.set_constant("outline_size", type, 5)
+		t.set_constant("outline_size", type, 4)
+	for type in ["Button", "OptionButton"]:
+		t.set_font("font", type, FONT_TITLE)
 	t.set_color("font_color", "Label", TEXT)
 	t.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.45))
 	t.set_constant("shadow_offset_y", "Label", 2)
@@ -303,7 +337,7 @@ static func theme() -> Theme:
 		t.set_color("font_disabled_color", type, DIM)
 	t.set_stylebox("panel", "PanelContainer", panel_box())
 	t.set_stylebox("panel", "Panel", panel_box())
-	var edit := inset_box(8)
+	var edit := input_box(8)
 	t.set_stylebox("normal", "LineEdit", edit)
 	var edit_focus: StyleBox = tint(edit.duplicate() if edit is NineBox else (edit as FancyBox).copy(), Color(1.35, 1.2, 0.85))
 	t.set_stylebox("focus", "LineEdit", edit_focus)
@@ -330,12 +364,12 @@ static func theme() -> Theme:
 		t.set_icon(ic, "CheckButton", SWITCH_OFF)
 	for st in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
 		t.set_stylebox(st, "CheckButton", StyleBoxEmpty.new())
-	var popup := panel_box(8)
+	var popup := tooltip_box(4)
 	t.set_stylebox("panel", "PopupMenu", popup)
 	t.set_stylebox("hover", "PopupMenu", fancy_button("orange", "normal", 6))
 	t.set_color("font_color", "PopupMenu", TEXT)
 	t.set_color("font_hover_color", "PopupMenu", Color.WHITE)
-	t.set_font("font", "PopupMenu", FONT_BOLD)
+	t.set_font("font", "PopupMenu", FONT_TITLE)
 	t.set_font_size("font_size", "PopupMenu", 18)
 	t.set_color("font_outline_color", "PopupMenu", OUTLINE)
 	t.set_constant("outline_size", "PopupMenu", 4)
@@ -362,8 +396,8 @@ static func theme() -> Theme:
 	t.set_constant("separation", "HBoxContainer", 8)
 	t.set_constant("h_separation", "GridContainer", 8)
 	t.set_constant("v_separation", "GridContainer", 8)
-	t.set_font("font", "TitleLabel", FONT_BOLD)
-	var tip := panel_box(8)
+	t.set_font("font", "TitleLabel", FONT_TITLE)
+	var tip := tooltip_box(6)
 	t.set_stylebox("panel", "TooltipPanel", tip)
 	t.set_color("font_color", "TooltipLabel", TEXT)
 	_theme = t
@@ -382,7 +416,7 @@ static func label(text: String, size := 18, color := TEXT, bold := true, outline
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_font_override("font", FONT_BOLD if bold else FONT_REGULAR)
-	var o := outline if outline >= 0 else clampi(int(size / 4.0), 3, 8)
+	var o := outline if outline >= 0 else clampi(int(size / 5.0), 2, 6)
 	l.add_theme_constant_override("outline_size", o)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
@@ -397,10 +431,18 @@ static func para(text: String, size := 16, color := TEXT, bold := false) -> Labe
 		l.add_theme_constant_override("shadow_offset_y", 1)
 	return l
 
+## Engraved-gold capitals (Cinzel) for window titles and plaques.
 static func title(text: String, size := 30) -> Label:
-	var l := label(text, size, GOLD, true, 8)
-	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
-	l.add_theme_constant_override("shadow_offset_y", 3)
+	var l := label(text, size, GOLD, true, maxi(3, int(size / 6.0)))
+	l.add_theme_font_override("font", FONT_TITLE)
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	l.add_theme_constant_override("shadow_offset_y", 2)
+	return l
+
+## Small capitals for section headings inside windows.
+static func heading(text: String, size := 17, color := GOLD) -> Label:
+	var l := label(text, size, color, true, 3)
+	l.add_theme_font_override("font", FONT_TITLE)
 	return l
 
 # ---------------------------------------------------------------- controls
@@ -410,7 +452,7 @@ static func button(text: String, cb: Callable, min_h := 48, kind := "gray", icon
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size = Vector2(0, min_h)
-	b.add_theme_font_size_override("font_size", clampi(int(min_h * 0.4), 14, 26))
+	b.add_theme_font_size_override("font_size", clampi(int(min_h * 0.36), 13, 24))
 	style_button(b, kind)
 	if icon != "":
 		var ic := UiIcon.new(icon, min_h * 0.5, "silver" if kind != "gray" else "gold")
@@ -705,7 +747,16 @@ class Pill extends PanelContainer:
 		row.add_theme_constant_override("separation", 4)
 		add_child(row)
 		_icon = UiIcon.new(icon_name, 30, palette)
-		row.add_child(_icon)
+		if Pack.has_part("pill"):
+			# the icon sits in the pill's round socket, over the left border
+			var holder := Control.new()
+			holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row.add_child(holder)
+			holder.add_child(_icon)
+			_icon.position = Vector2(-36 + 15 - 15, -15)
+			holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		else:
+			row.add_child(_icon)
 		value_label = UiKit.label("0", 18, UiKit.TEXT, true, 4)
 		value_label.custom_minimum_size.x = 64
 		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

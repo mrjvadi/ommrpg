@@ -122,7 +122,7 @@ func _card(i: int) -> Control:
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(0, 76)
 	b.focus_mode = Control.FOCUS_NONE
-	var box := UiKit.panel_box(8)
+	var box := UiKit.card_box(6)
 	if i == _selected:
 		box = UiKit.slot_box("legendary") if Pack.has_part("slot_legendary") else UiKit.tint(box, Color(1.6, 1.3, 0.6))
 	for st in ["normal", "hover", "pressed"]:

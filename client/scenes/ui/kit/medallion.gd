@@ -1,7 +1,8 @@
 class_name Medallion
 extends Button
-## Round icon button with a caption underneath and an optional red "!"
-## badge (the HUD menu and action buttons).
+## Icon button in a carved square socket (a round medallion without the
+## GUI kit) with a caption underneath and an optional red "!" badge (the HUD
+## menu and action buttons).
 
 var caption: Label
 var icon_node: UiIcon
@@ -13,7 +14,7 @@ func _init(icon_name: String, text := "", diameter := 64.0, kind := "gray", pale
 	_d = diameter
 	color_kind = kind
 	focus_mode = Control.FOCUS_NONE
-	custom_minimum_size = Vector2(diameter, diameter + (diameter * 0.3 if text != "" else 0.0))
+	custom_minimum_size = Vector2(diameter, diameter + (diameter * 0.36 if text != "" else 0.0))
 	flat = true
 	for st in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
 		add_theme_stylebox_override(st, StyleBoxEmpty.new())
@@ -27,9 +28,10 @@ func _init(icon_name: String, text := "", diameter := 64.0, kind := "gray", pale
 	icon_node.size = icon_node.custom_minimum_size
 	add_child(icon_node)
 	if text != "":
-		caption = UiKit.label(text, clampi(int(diameter * 0.27), 12, 22), UiKit.TEXT, true, 5)
+		caption = UiKit.label(text, clampi(int(diameter * 0.23), 11, 20), UiKit.TEXT, true, 4)
+		caption.add_theme_font_override("font", UiKit.FONT_TITLE)
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.position = Vector2(-diameter * 0.3, diameter * 0.8)
+		caption.position = Vector2(-diameter * 0.3, diameter * 0.9)
 		caption.size = Vector2(diameter * 1.6, diameter * 0.4)
 		add_child(caption)
 	_badge = UiKit.badge()
@@ -66,14 +68,15 @@ class Disc extends Control:
 	func _draw() -> void:
 		var c := size / 2
 		var r := size.x / 2
-		var ring := UiKit.part("ring_filled")
-		if ring and kind == "gray":
-			# ornate bronze ring from the GUI kit
+		var frame := UiKit.part("icon_frame_on" if pressed or glow else "icon_frame")
+		if frame and kind == "gray":
+			# square carved socket from the GUI kit (Metin2 / Aion menu buttons)
 			if glow:
 				for i in 4:
-					draw_circle(c, r + 6 - i * 2, Color(1, 0.8, 0.3, 0.12))
-			draw_circle(c + Vector2(0, 3), r * 0.95, Color(0, 0, 0, 0.45))
-			draw_texture_rect(ring, Rect2(Vector2.ZERO, size), false, Color(0.75, 0.75, 0.75) if pressed else Color.WHITE)
+					var g := 7.0 - i * 2
+					draw_rect(Rect2(Vector2(-g, -g), size + Vector2(g, g) * 2), Color(1, 0.8, 0.3, 0.1))
+			draw_rect(Rect2(Vector2(2, 4), size - Vector2(2, 2)), Color(0, 0, 0, 0.4))
+			draw_texture_rect(frame, Rect2(Vector2.ZERO, size), false, Color(0.8, 0.8, 0.8) if pressed else Color.WHITE)
 			return
 		var cols: Array = UiKit.BUTTON_COLORS.get(kind, UiKit.BUTTON_COLORS.gray)
 		if kind == "gray":

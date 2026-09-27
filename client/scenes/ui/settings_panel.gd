@@ -30,7 +30,7 @@ func _render() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cols.add_child(right)
 
-	left.add_child(UiKit.label("Screen", 22, UiKit.GOLD))
+	left.add_child(UiKit.heading("Screen", 20))
 	if Telegram.at_least("8.0"):
 		var fs := _toggle("Full screen", Telegram.is_fullscreen(), func(on):
 			if on:
@@ -50,7 +50,7 @@ func _render() -> void:
 		if home in ["missed", "unknown"] and is_inside_tree():
 			left.add_child(UiKit.button("Add to home screen", Telegram.add_to_home_screen, 48, "blue", "home"))
 
-	right.add_child(UiKit.label("HUD layout", 22, UiKit.GOLD))
+	right.add_child(UiKit.heading("HUD layout", 20))
 	right.add_child(UiKit.para("Keep up to three layouts and switch any time. Every element can be moved, resized or hidden.", 15, UiKit.MUTED))
 	var slots := HBoxContainer.new()
 	for i in range(1, HudLayout.SLOTS + 1):

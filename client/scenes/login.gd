@@ -16,16 +16,29 @@ func _ready() -> void:
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 14)
 	center.add_child(col)
+	var crest := UiKit.part("crest")
+	if crest:
+		var cr := TextureRect.new()
+		cr.texture = crest
+		cr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		cr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		cr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		cr.custom_minimum_size = Pack.part_size("crest") * 0.6
+		col.add_child(cr)
 	var logo := HBoxContainer.new()
 	logo.alignment = BoxContainer.ALIGNMENT_CENTER
-	logo.add_child(UiKit.icon("attack", 64, "gold"))
-	var title := UiKit.title("OMMRPG", 64)
+	if crest == null:
+		logo.add_child(UiKit.icon("attack", 64, "gold"))
+	var title := UiKit.title("OMMRPG", 60)
 	logo.add_child(title)
-	logo.add_child(UiKit.icon("hero", 64, "gold"))
+	if crest == null:
+		logo.add_child(UiKit.icon("hero", 64, "gold"))
 	col.add_child(logo)
-	var sub := UiKit.label("A world that writes itself", 20, UiKit.MUTED, true, 5)
+	var sub := UiKit.label("A world that writes itself", 20, UiKit.MUTED, true, 3)
+	sub.add_theme_font_override("font", UiKit.FONT_TITLE)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(sub)
+	col.add_child(UiKit.separator(360))
 	var p := UiKit.window(18)
 	p.custom_minimum_size = Vector2(440, 0)
 	col.add_child(p)

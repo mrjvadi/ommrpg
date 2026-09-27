@@ -26,17 +26,17 @@ OUT_SIZE = 192
 
 def M():
     return {
-        "steel": C.material("steel", (0.78, 0.82, 0.9), metal=1.0, rough=0.22),
-        "dark_steel": C.material("dsteel", (0.35, 0.37, 0.42), metal=1.0, rough=0.35),
-        "gold": C.material("gold", (1.0, 0.68, 0.22), metal=1.0, rough=0.22),
-        "leather": C.material("leather", (0.45, 0.2, 0.08), rough=0.55, noise=0.2, noise_scale=20),
+        "steel": C.weathered("steel", (0.66, 0.69, 0.75), rough=0.24, bump=0.05, dirt=0.55, wear=0.45, hammered=False),
+        "dark_steel": C.weathered("dsteel", (0.26, 0.27, 0.3), rough=0.34, bump=0.1, dirt=0.65, wear=0.9),
+        "gold": C.weathered("gold", (0.98, 0.66, 0.22), rough=0.22, bump=0.04, dirt=0.55, wear=0.35, hammered=False),
+        "leather": C.weathered("leather", (0.44, 0.2, 0.08), metal=0.0, rough=0.6, bump=0.22, dirt=0.6, wear=0.45),
         "leather_dark": C.material("leather_dark", (0.25, 0.1, 0.05), rough=0.6),
-        "wood": C.material("wood", (0.55, 0.28, 0.1), rough=0.5, noise=0.25, noise_scale=14),
+        "wood": C.weathered("wood", (0.52, 0.27, 0.1), metal=0.0, rough=0.6, bump=0.3, dirt=0.6, wear=0.3),
         "parchment": C.material("parch", (0.93, 0.83, 0.62), rough=0.8, noise=0.12, noise_scale=6),
         "red": C.material("red", (0.85, 0.08, 0.06), rough=0.35, coat=0.5),
         "blue": C.material("blue", (0.1, 0.35, 0.85), rough=0.35, coat=0.5),
         "white": C.material("white", (0.95, 0.93, 0.9), rough=0.4),
-        "stone": C.material("stone", (0.5, 0.48, 0.46), rough=0.85, noise=0.3, noise_scale=8),
+        "stone": C.carved_stone("stone", (0.42, 0.4, 0.38)),
         "ruby": C.material("ruby", (1.0, 0.08, 0.1), rough=0.05, emit=(1.0, 0.1, 0.1), strength=0.6, coat=1),
         "sapphire": C.material("sapph", (0.1, 0.45, 1.0), rough=0.05, emit=(0.1, 0.45, 1.0), strength=0.8, coat=1),
         "amethyst": C.material("amet", (0.6, 0.2, 1.0), rough=0.08, emit=(0.55, 0.2, 1.0), strength=0.7, coat=1),

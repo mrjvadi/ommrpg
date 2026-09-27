@@ -112,6 +112,8 @@ func _enter_zone(p: Dictionary, floor_data = null) -> void:
 	path.clear()
 	if z != zone:
 		zone = z
+		if hud:
+			hud.set_zone("Dungeon  F%d" % int(p.get("floor", 1)) if z.begins_with("d:") else z.replace("_", " ").capitalize())
 		for m in monsters.values():
 			m.queue_free()
 		monsters.clear()

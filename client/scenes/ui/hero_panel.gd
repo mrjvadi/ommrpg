@@ -191,7 +191,7 @@ func _render_stats() -> void:
 	# attributes
 	var free := int(c.get("free_points", 0)) - _spent()
 	var head := HBoxContainer.new()
-	head.add_child(UiKit.label("Attributes", 20, UiKit.GOLD))
+	head.add_child(UiKit.heading("Attributes", 18))
 	head.add_child(UiKit.hspacer())
 	head.add_child(UiKit.label("Free points: %d" % free, 18, UiKit.GOOD if free > 0 else UiKit.MUTED))
 	_content.add_child(head)

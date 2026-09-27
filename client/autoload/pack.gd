@@ -69,7 +69,25 @@ func nine(part: String, pad := [8, 8, 8, 8], scale := 0.0) -> NineBox:
 	var p: Dictionary = gui_parts[part]
 	var rc: Array = p.rect
 	var mg = p.get("margin")
-	return NineBox.new(gui_texture, Rect2(rc[0], rc[1], rc[2], rc[3]), mg if mg is Array else [0, 0, 0, 0], scale if scale > 0 else gui_scale, pad)
+	var nb := NineBox.new(gui_texture, Rect2(rc[0], rc[1], rc[2], rc[3]), mg if mg is Array else [0, 0, 0, 0], scale if scale > 0 else gui_scale, pad)
+	nb.tile = bool(anchors(part).get("tile", false))
+	return nb
+
+## Named anchor points of a part, in texture pixels from its top-left:
+## rects are [x, y, w, h], circles [cx, cy, r]; also "content" (the inner
+## padding) and "tile". Empty when the pack has no such part.
+func anchors(part: String) -> Dictionary:
+	if not has_part(part):
+		return {}
+	var a = gui_parts[part].get("anchors", {})
+	return a if a is Dictionary else {}
+
+## A part's size in texture pixels (draw it at gui_scale).
+func part_size(part: String) -> Vector2:
+	if not has_part(part):
+		return Vector2.ZERO
+	var rc: Array = gui_parts[part].rect
+	return Vector2(rc[2], rc[3])
 
 ## A whole part as a texture (rings, close button, separators), or null.
 func part_texture(part: String) -> Texture2D:

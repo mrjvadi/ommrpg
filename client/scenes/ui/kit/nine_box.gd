@@ -12,6 +12,10 @@ var modulate := Color.WHITE
 var draw_center := true
 ## Draw this many pixels inside the given rect (a bar's fill inside its frame).
 var inset := 0.0
+## Repeat the edge strips instead of stretching them (engraved frames whose
+## pattern must keep its spacing). The middle strip of such a part is a whole
+## number of pattern periods, so the copies join seamlessly.
+var tile := false
 
 func _init(tex: Texture2D = null, rect := Rect2(), margins := [0, 0, 0, 0], s := 0.5, pad := [8, 8, 8, 8]) -> void:
 	texture = tex
@@ -28,6 +32,7 @@ func copy() -> NineBox:
 	b.modulate = modulate
 	b.draw_center = draw_center
 	b.inset = inset
+	b.tile = tile
 	return b
 
 func _draw(ci: RID, rect: Rect2) -> void:
@@ -67,4 +72,30 @@ func _draw(ci: RID, rect: Rect2) -> void:
 			var src := Rect2(sx[i], sy[j], sx[i + 1] - sx[i], sy[j + 1] - sy[j])
 			if dst.size.x <= 0.01 or dst.size.y <= 0.01 or src.size.x <= 0 or src.size.y <= 0:
 				continue
-			RenderingServer.canvas_item_add_texture_rect_region(ci, dst, rid, src, modulate, false, true)
+			if tile and (i == 1) != (j == 1):
+				_tiled(ci, rid, dst, src, i == 1)
+			else:
+				RenderingServer.canvas_item_add_texture_rect_region(ci, dst, rid, src, modulate, false, true)
+
+## Repeats `src` along x (or y) at the box scale, cropping the last copy.
+func _tiled(ci: RID, rid: RID, dst: Rect2, src: Rect2, along_x: bool) -> void:
+	var step := (src.size.x if along_x else src.size.y) * scale
+	var total := dst.size.x if along_x else dst.size.y
+	if step < 1.0:
+		return
+	# centre the pattern so both ends are cut the same way
+	var n := ceili(total / step)
+	var start := (total - n * step) / 2.0
+	for k in n:
+		var a := maxf(0.0, start + k * step)
+		var b := minf(total, start + (k + 1) * step)
+		if b - a <= 0.01:
+			continue
+		var f0 := (a - (start + k * step)) / step
+		var f1 := (b - (start + k * step)) / step
+		if along_x:
+			RenderingServer.canvas_item_add_texture_rect_region(ci, Rect2(dst.position.x + a, dst.position.y, b - a, dst.size.y), rid,
+				Rect2(src.position.x + src.size.x * f0, src.position.y, src.size.x * (f1 - f0), src.size.y), modulate, false, true)
+		else:
+			RenderingServer.canvas_item_add_texture_rect_region(ci, Rect2(dst.position.x, dst.position.y + a, dst.size.x, b - a), rid,
+				Rect2(src.position.x, src.position.y + src.size.y * f0, src.size.x, src.size.y * (f1 - f0)), modulate, false, true)
