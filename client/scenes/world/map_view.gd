@@ -116,10 +116,11 @@ func _set_object_cell(cell: Vector2i, o: int) -> void:
 	else:
 		objects.set_cell(cell, 0, Vector2i(o, OBJECT_ROW))
 
-## An invisible circle follows the player: every prop in front of the
-## player (drawn over it) whose sprite reaches into that circle switches to
-## the see-through tile, and the shader fades it smoothly inside the circle
-## only, so the hero is never hidden while the rest of a tree stays solid.
+## An invisible circle follows the player: every prop whose sprite reaches
+## into that circle (in front of the player or behind it) switches to the
+## see-through tile, and the shader fades it smoothly inside the circle
+## only, so the area around the hero stays clear while the rest of each
+## tree stays solid.
 ## `center` is the player's chest in this node's coordinates.
 func fade_around(p: Vector2i, center: Vector2) -> void:
 	see_through.set_shader_parameter("center", to_global(center))
@@ -129,7 +130,8 @@ func fade_around(p: Vector2i, center: Vector2) -> void:
 	if not _props.is_empty():
 		var circle := Rect2(center - Vector2(SEE_RADIUS, SEE_RADIUS), Vector2(SEE_RADIUS, SEE_RADIUS) * 2).grow(TILE)
 		var reach := ceili(SEE_RADIUS / TILE) + 4
-		for y in range(p.y, p.y + reach + 2):
+		# behind the player too: every prop reaching into the circle fades
+		for y in range(p.y - reach, p.y + reach + 2):
 			for x in range(p.x - reach, p.x + reach + 1):
 				var cell := Vector2i(x, y)
 				if objects.get_cell_source_id(cell) != 1:
