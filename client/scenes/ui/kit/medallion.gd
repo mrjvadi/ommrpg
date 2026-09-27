@@ -28,7 +28,7 @@ func _init(icon_name: String, text := "", diameter := 64.0, kind := "gray", pale
 	icon_node.size = icon_node.custom_minimum_size
 	add_child(icon_node)
 	if text != "":
-		caption = UiKit.label(text, clampi(int(diameter * 0.23), 11, 20), UiKit.TEXT, true, 4)
+		caption = UiKit.label(text, clampi(int(diameter * 0.2), 10, 18), UiKit.TEXT, true, 4)
 		caption.add_theme_font_override("font", UiKit.FONT_TITLE)
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.position = Vector2(-diameter * 0.3, diameter * 0.9)

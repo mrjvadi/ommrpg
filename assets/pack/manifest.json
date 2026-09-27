@@ -1,526 +1,671 @@
 {
  "format": 1,
  "gui": {
-  "image": "gui.2b786420b5fb.png",
+  "image": "gui.e6ce373c88d4.png",
   "parts": {
    "bar_blue": {
+    "anchors": {},
     "margin": [
-     8,
+     10,
      0,
-     8,
+     10,
      0
     ],
     "rect": [
-     98,
-     824,
+     1418,
+     866,
      96,
-     32
+     34
     ]
    },
    "bar_frame": {
-    "margin": [
-     20,
-     14,
-     20,
-     14
-    ],
-    "rect": [
-     728,
-     758,
-     256,
-     44
-    ]
-   },
-   "bar_gold": {
-    "margin": [
-     8,
-     0,
-     8,
-     0
-    ],
-    "rect": [
-     294,
-     824,
-     96,
-     32
-    ]
-   },
-   "bar_green": {
-    "margin": [
-     8,
-     0,
-     8,
-     0
-    ],
-    "rect": [
-     196,
-     824,
-     96,
-     32
-    ]
-   },
-   "bar_purple": {
-    "margin": [
-     8,
-     0,
-     8,
-     0
-    ],
-    "rect": [
-     392,
-     824,
-     96,
-     32
-    ]
-   },
-   "bar_red": {
-    "margin": [
-     8,
-     0,
-     8,
-     0
-    ],
-    "rect": [
-     0,
-     824,
-     96,
-     32
-    ]
-   },
-   "button_blue_disabled": {
+    "anchors": {
+     "content": 0
+    },
     "margin": [
      24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     178,
-     692,
-     176,
-     64
-    ]
-   },
-   "button_blue_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     712,
-     626,
-     176,
-     64
-    ]
-   },
-   "button_blue_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     534,
-     626,
-     176,
-     64
-    ]
-   },
-   "button_blue_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     0,
-     692,
-     176,
-     64
-    ]
-   },
-   "button_gray_disabled": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     178,
-     494,
-     176,
-     64
-    ]
-   },
-   "button_gray_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     678,
-     420,
-     176,
-     64
-    ]
-   },
-   "button_gray_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     322,
-     420,
-     176,
-     64
-    ]
-   },
-   "button_gray_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     0,
-     494,
-     176,
-     64
-    ]
-   },
-   "button_green_disabled": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     356,
-     626,
-     176,
-     64
-    ]
-   },
-   "button_green_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     0,
-     626,
-     176,
-     64
-    ]
-   },
-   "button_green_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     712,
-     560,
-     176,
-     64
-    ]
-   },
-   "button_green_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     178,
-     626,
-     176,
-     64
-    ]
-   },
-   "button_orange_disabled": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     712,
-     494,
-     176,
-     64
-    ]
-   },
-   "button_orange_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     356,
-     494,
-     176,
-     64
-    ]
-   },
-   "button_orange_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     500,
-     420,
-     176,
-     64
-    ]
-   },
-   "button_orange_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     534,
-     494,
-     176,
-     64
-    ]
-   },
-   "button_purple_disabled": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     0,
-     758,
-     176,
-     64
-    ]
-   },
-   "button_purple_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     534,
-     692,
-     176,
-     64
-    ]
-   },
-   "button_purple_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     356,
-     692,
-     176,
-     64
-    ]
-   },
-   "button_purple_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     712,
-     692,
-     176,
-     64
-    ]
-   },
-   "button_red_disabled": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     534,
-     560,
-     176,
-     64
-    ]
-   },
-   "button_red_hover": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     178,
-     560,
-     176,
-     64
-    ]
-   },
-   "button_red_normal": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     0,
-     560,
-     176,
-     64
-    ]
-   },
-   "button_red_pressed": {
-    "margin": [
-     24,
-     22,
-     24,
-     22
-    ],
-    "rect": [
-     356,
-     560,
-     176,
-     64
-    ]
-   },
-   "close": {
-    "margin": null,
-    "rect": [
-     878,
-     290,
-     96,
-     96
-    ]
-   },
-   "frame": {
-    "margin": [
-     104,
-     104,
-     104,
-     104
-    ],
-    "rect": [
-     0,
-     0,
-     288,
-     288
-    ]
-   },
-   "inset": {
-    "margin": [
      16,
-     16,
-     16,
+     24,
      16
     ],
     "rect": [
-     780,
-     290,
-     96,
-     96
-    ]
-   },
-   "pill": {
-    "margin": [
-     28,
-     20,
-     28,
-     20
-    ],
-    "rect": [
-     534,
-     758,
-     192,
+     646,
+     866,
+     256,
      52
     ]
    },
-   "plaque": {
+   "bar_gold": {
+    "anchors": {},
     "margin": [
-     80,
-     24,
-     80,
-     24
-    ],
-    "rect": [
+     10,
      0,
-     420,
-     320,
-     72
-    ]
-   },
-   "ring": {
-    "margin": null,
-    "rect": [
-     290,
-     0,
-     256,
-     256
-    ]
-   },
-   "ring_filled": {
-    "margin": null,
-    "rect": [
-     548,
-     0,
-     256,
-     256
-    ]
-   },
-   "separator": {
-    "margin": [
-     48,
-     0,
-     48,
+     10,
      0
     ],
     "rect": [
-     490,
-     824,
-     512,
-     28
+     1516,
+     866,
+     96,
+     34
     ]
    },
-   "slot_common": {
+   "bar_green": {
+    "anchors": {},
+    "margin": [
+     10,
+     0,
+     10,
+     0
+    ],
+    "rect": [
+     1614,
+     866,
+     96,
+     34
+    ]
+   },
+   "bar_purple": {
+    "anchors": {},
+    "margin": [
+     10,
+     0,
+     10,
+     0
+    ],
+    "rect": [
+     1712,
+     866,
+     96,
+     34
+    ]
+   },
+   "bar_red": {
+    "anchors": {},
+    "margin": [
+     10,
+     0,
+     10,
+     0
+    ],
+    "rect": [
+     1810,
+     866,
+     96,
+     34
+    ]
+   },
+   "button_blue_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1020,
+     580,
+     200,
+     76
+    ]
+   },
+   "button_blue_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1222,
+     580,
+     200,
+     76
+    ]
+   },
+   "button_blue_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1424,
+     580,
+     200,
+     76
+    ]
+   },
+   "button_blue_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1626,
+     580,
+     200,
+     76
+    ]
+   },
+   "button_gray_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1828,
+     580,
+     200,
+     76
+    ]
+   },
+   "button_gray_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     0,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_gray_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     202,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_gray_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     404,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_green_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     606,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_green_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     808,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_green_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1010,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_green_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1212,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_orange_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1414,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_orange_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1616,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_orange_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1818,
+     710,
+     200,
+     76
+    ]
+   },
+   "button_orange_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     0,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_purple_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     202,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_purple_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     404,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_purple_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     606,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_purple_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     808,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_red_disabled": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1010,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_red_hover": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1212,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_red_normal": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1414,
+     788,
+     200,
+     76
+    ]
+   },
+   "button_red_pressed": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     32,
+     26,
+     32,
+     26
+    ],
+    "rect": [
+     1616,
+     788,
+     200,
+     76
+    ]
+   },
+   "card": {
+    "anchors": {
+     "content": 10
+    },
+    "margin": [
+     40,
+     40,
+     40,
+     40
+    ],
+    "rect": [
+     178,
+     402,
+     160,
+     160
+    ]
+   },
+   "chat": {
+    "anchors": {
+     "content": 8
+    },
+    "margin": [
+     20,
+     20,
+     20,
+     20
+    ],
+    "rect": [
+     1100,
+     402,
+     128,
+     128
+    ]
+   },
+   "close": {
+    "anchors": {},
+    "margin": null,
+    "rect": [
+     504,
+     580,
+     112,
+     112
+    ]
+   },
+   "crest": {
+    "anchors": {},
+    "margin": null,
+    "rect": [
+     340,
+     402,
+     320,
+     160
+    ]
+   },
+   "icon_frame": {
+    "anchors": {
+     "content": 10
+    },
+    "margin": [
+     34,
+     34,
+     34,
+     34
+    ],
+    "rect": [
+     824,
+     402,
+     136,
+     136
+    ]
+   },
+   "icon_frame_on": {
+    "anchors": {
+     "content": 10
+    },
+    "margin": [
+     34,
+     34,
+     34,
+     34
+    ],
+    "rect": [
+     962,
+     402,
+     136,
+     136
+    ]
+   },
+   "input": {
+    "anchors": {
+     "content": 6
+    },
+    "margin": [
+     20,
+     20,
+     20,
+     20
+    ],
+    "rect": [
+     202,
+     866,
+     200,
+     64
+    ]
+   },
+   "minimap": {
+    "anchors": {
+     "hole": [
+      200.0,
+      200.0,
+      150
+     ],
+     "zone": [
+      92.0,
+      378.0,
+      216,
+      22
+     ]
+    },
+    "margin": null,
+    "rect": [
+     0,
+     0,
+     400,
+     400
+    ]
+   },
+   "orb_big": {
+    "anchors": {
+     "hole": [
+      160.0,
+      160.0,
+      117
+     ]
+    },
+    "margin": null,
+    "rect": [
+     788,
+     0,
+     320,
+     320
+    ]
+   },
+   "orb_small": {
+    "anchors": {
+     "hole": [
+      88.0,
+      88.0,
+      63
+     ]
+    },
+    "margin": null,
+    "rect": [
+     0,
+     402,
+     176,
+     176
+    ]
+   },
+   "panel": {
+    "anchors": {
+     "content": 8
+    },
     "margin": [
      24,
      24,
@@ -528,166 +673,364 @@
      24
     ],
     "rect": [
+     1230,
+     402,
+     128,
+     128
+    ]
+   },
+   "pill": {
+    "anchors": {
+     "content": 4,
+     "socket": [
+      30.0,
+      32.0,
+      22
+     ]
+    },
+    "margin": [
+     64,
+     22,
+     20,
+     22
+    ],
+    "rect": [
+     404,
+     866,
+     240,
+     64
+    ]
+   },
+   "plaque": {
+    "anchors": {
+     "content": 12
+    },
+    "margin": [
+     120,
+     30,
+     120,
+     30
+    ],
+    "rect": [
+     618,
+     580,
+     400,
+     96
+    ]
+   },
+   "separator": {
+    "anchors": {},
+    "margin": null,
+    "rect": [
+     904,
+     866,
+     512,
+     40
+    ]
+   },
+   "side_tab": {
+    "anchors": {
+     "content": 8
+    },
+    "margin": [
+     30,
+     30,
+     30,
+     30
+    ],
+    "rect": [
      260,
-     290,
+     580,
+     120,
+     120
+    ]
+   },
+   "side_tab_on": {
+    "anchors": {
+     "content": 8
+    },
+    "margin": [
+     30,
+     30,
+     30,
+     30
+    ],
+    "rect": [
+     382,
+     580,
+     120,
+     120
+    ]
+   },
+   "slot_common": {
+    "anchors": {
+     "content": 4
+    },
+    "margin": [
+     26,
+     26,
+     26,
+     26
+    ],
+    "rect": [
+     1360,
+     402,
      128,
      128
     ]
    },
    "slot_empty": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     130,
-     290,
+     1490,
+     402,
      128,
      128
     ]
    },
    "slot_epic": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     806,
-     0,
+     1620,
+     402,
      128,
      128
     ]
    },
    "slot_legendary": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     0,
-     290,
+     1750,
+     402,
      128,
      128
     ]
    },
    "slot_mythic": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     650,
-     290,
+     1880,
+     402,
      128,
      128
     ]
    },
    "slot_rare": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     520,
-     290,
+     0,
+     580,
      128,
      128
     ]
    },
    "slot_uncommon": {
+    "anchors": {
+     "content": 4
+    },
     "margin": [
-     24,
-     24,
-     24,
-     24
+     26,
+     26,
+     26,
+     26
     ],
     "rect": [
-     390,
-     290,
+     130,
+     580,
      128,
      128
     ]
    },
+   "status": {
+    "anchors": {
+     "badge": [
+      206.0,
+      208.0,
+      22
+     ],
+     "hp": [
+      260.0,
+      104.0,
+      360,
+      28
+     ],
+     "name": [
+      260.0,
+      60.0,
+      360,
+      32
+     ],
+     "orb": [
+      130.0,
+      128.0,
+      96
+     ],
+     "xp": [
+      260.0,
+      148.0,
+      360,
+      24
+     ]
+    },
+    "margin": null,
+    "rect": [
+     1110,
+     0,
+     820,
+     256
+    ]
+   },
    "tab": {
+    "anchors": {
+     "content": 6
+    },
     "margin": [
-     26,
-     20,
-     26,
-     8
+     30,
+     22,
+     30,
+     10
     ],
     "rect": [
-     178,
-     758,
-     176,
-     60
+     1818,
+     788,
+     200,
+     68
     ]
    },
    "tab_on": {
+    "anchors": {
+     "content": 6
+    },
     "margin": [
-     26,
-     20,
-     26,
-     8
+     30,
+     22,
+     30,
+     10
     ],
     "rect": [
-     356,
-     758,
-     176,
-     60
+     0,
+     866,
+     200,
+     68
+    ]
+   },
+   "tooltip": {
+    "anchors": {
+     "content": 10
+    },
+    "margin": [
+     36,
+     36,
+     36,
+     36
+    ],
+    "rect": [
+     662,
+     402,
+     160,
+     160
+    ]
+   },
+   "window": {
+    "anchors": {
+     "content": 56,
+     "tile": true
+    },
+    "margin": [
+     128,
+     128,
+     128,
+     128
+    ],
+    "rect": [
+     402,
+     0,
+     384,
+     384
     ]
    }
   },
   "scale": 0.5
  },
  "icons": {
-  "amulet": "icons/amulet.71a4d53aa350.png",
-  "anvil": "icons/anvil.082bc038fd4c.png",
-  "attack": "icons/attack.64904dbbc91d.png",
-  "bag": "icons/bag.f3dcb2c79f0e.png",
-  "book": "icons/book.62fe41dd5949.png",
-  "chest": "icons/chest.58494734bec7.png",
-  "chronicle": "icons/chronicle.2a6827d45f5d.png",
-  "crown": "icons/crown.63a017fdcbc2.png",
-  "dungeon": "icons/dungeon.032cfae85360.png",
-  "essence": "icons/essence.1fb1048e3b7c.png",
-  "exit": "icons/exit.557f0a6979a7.png",
-  "feet": "icons/feet.56c73fe5e72e.png",
-  "fist": "icons/fist.5a16f88535da.png",
-  "gold": "icons/gold.d8e56c19fd9a.png",
-  "guild": "icons/guild.c124a17119c4.png",
-  "hammer": "icons/hammer.7bd0901c2cef.png",
-  "hands": "icons/hands.48e8a466bf07.png",
-  "head": "icons/head.441765385e9e.png",
-  "heart": "icons/heart.4bc02313178c.png",
-  "hero": "icons/hero.441765385e9e.png",
-  "home": "icons/home.831abfc89325.png",
-  "layout": "icons/layout.fb69a38ec004.png",
-  "legs": "icons/legs.686703e35bc1.png",
-  "map": "icons/map.4e666927057b.png",
-  "offhand": "icons/offhand.a70cf1887fdc.png",
-  "potion": "icons/potion.e009ac7a9d9a.png",
-  "ring": "icons/ring.737863833575.png",
-  "scroll": "icons/scroll.840ab0c3bbc3.png",
-  "settings": "icons/settings.35bc87e2c7a5.png",
-  "skull": "icons/skull.eb285b8f65c2.png",
-  "sparkle": "icons/sparkle.2ab7ab3a1301.png",
-  "star": "icons/star.2bcfad430e32.png",
-  "ton": "icons/ton.0bd7bd0e08b0.png",
-  "trade": "icons/trade.bc60ba802d6f.png",
-  "use": "icons/use.babd09a5db6b.png",
-  "vault": "icons/vault.dc0432aa62b0.png",
-  "wallet": "icons/wallet.a95566fff08f.png",
-  "weapon": "icons/weapon.24aeb5026eb0.png"
+  "amulet": "icons/amulet.c11be3ac7793.png",
+  "anvil": "icons/anvil.f81c5e9fc96e.png",
+  "attack": "icons/attack.90bd5c3ffb59.png",
+  "bag": "icons/bag.dd22e9995b23.png",
+  "book": "icons/book.fca74b3da34a.png",
+  "chest": "icons/chest.76a24599b907.png",
+  "chronicle": "icons/chronicle.f99aa7e66e2e.png",
+  "crown": "icons/crown.f7523b1f5da1.png",
+  "dungeon": "icons/dungeon.2deb7718465c.png",
+  "essence": "icons/essence.6fbd4e4cd8b6.png",
+  "exit": "icons/exit.beabbc1c04a0.png",
+  "feet": "icons/feet.20a54ded8549.png",
+  "fist": "icons/fist.8196be546004.png",
+  "gold": "icons/gold.ad7d577b1460.png",
+  "guild": "icons/guild.128aeb12f253.png",
+  "hammer": "icons/hammer.e0575efc8f03.png",
+  "hands": "icons/hands.8196be546004.png",
+  "head": "icons/head.e98bcf31a76d.png",
+  "heart": "icons/heart.4ff09a631d41.png",
+  "hero": "icons/hero.41573957e5a5.png",
+  "home": "icons/home.f09011ce5628.png",
+  "layout": "icons/layout.500ad236b21e.png",
+  "legs": "icons/legs.cc9a01819ff0.png",
+  "map": "icons/map.5744511ce3d1.png",
+  "offhand": "icons/offhand.db43a40398e7.png",
+  "potion": "icons/potion.2833e902ca12.png",
+  "ring": "icons/ring.d689fc211047.png",
+  "scroll": "icons/scroll.56498c6b8b08.png",
+  "settings": "icons/settings.0c08d3b8878b.png",
+  "skull": "icons/skull.b876f55e025d.png",
+  "sparkle": "icons/sparkle.9796ccea7877.png",
+  "star": "icons/star.094d74be1d24.png",
+  "ton": "icons/ton.e6aa9e5918d8.png",
+  "trade": "icons/trade.61a05141a3fc.png",
+  "use": "icons/use.18b8518adbb2.png",
+  "vault": "icons/vault.bd1b587375f2.png",
+  "wallet": "icons/wallet.5b25d4422320.png",
+  "weapon": "icons/weapon.41b657287aeb.png"
  },
  "props": {
   "image": "props.fe31cba8e6f1.png",
@@ -1177,5 +1520,5 @@
   },
   "tile": 32
  },
- "version": "11281248a5c5"
+ "version": "db560216a674"
 }

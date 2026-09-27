@@ -98,7 +98,7 @@ func _build() -> void:
 
 	# menu medallions
 	menu_box = HBoxContainer.new()
-	menu_box.add_theme_constant_override("separation", 10)
+	menu_box.add_theme_constant_override("separation", 16)
 	_item("menu", menu_box)
 	_fill_menu()
 
@@ -157,7 +157,7 @@ func _apply_menu_dir(d: String) -> void:
 	if (menu_box is VBoxContainer) == want_col:
 		return
 	var nb: BoxContainer = VBoxContainer.new() if want_col else HBoxContainer.new()
-	nb.add_theme_constant_override("separation", 10 if not want_col else 4)
+	nb.add_theme_constant_override("separation", 16 if not want_col else 4)
 	var it: HudItem = items["menu"]
 	var badges := {}
 	for k in menu_buttons.keys():

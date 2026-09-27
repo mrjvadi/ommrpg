@@ -38,7 +38,7 @@ func _init(title: String) -> void:
 	col.add_theme_constant_override("separation", 10)
 	_panel.add_child(col)
 	header = HBoxContainer.new()
-	header.custom_minimum_size.y = 34
+	header.custom_minimum_size.y = 6
 	col.add_child(header)
 	title_label = UiKit.title(title, 22)
 	title_label.visible = false
@@ -99,13 +99,15 @@ func _fit() -> void:
 	var avail := Vector2(vs.x - ins.w - ins.y - 24.0, vs.y - ins.x - ins.z - top - 14.0)
 	var sz := Vector2(minf(avail.x, max_size.x), minf(avail.y, max_size.y))
 	if fit_content:
-		var need := body.get_combined_minimum_size().y + header.get_combined_minimum_size().y + 52.0
+		var need := body.get_combined_minimum_size().y + header.get_combined_minimum_size().y + _panel.get_theme_stylebox("panel").get_minimum_size().y + 12.0
 		sz.y = minf(sz.y, maxf(200.0, need))
 	_panel.custom_minimum_size = sz
 	_panel.size = sz
 	_panel.position = Vector2(ins.w + (vs.x - ins.w - ins.y - sz.x) / 2, ins.x + top + (avail.y - sz.y) / 2)
 	_panel.pivot_offset = sz / 2
-	_scroll.custom_minimum_size = Vector2(0, sz.y - 84.0)
+	# whatever the frame's padding and the header leave for the body
+	var chrome := _panel.get_theme_stylebox("panel").get_minimum_size().y + header.get_combined_minimum_size().y + 10.0
+	_scroll.custom_minimum_size = Vector2(0, maxf(40.0, sz.y - chrome))
 	var rw := clampf(title_label.get_combined_minimum_size().x + 110.0, 260.0, sz.x * 0.7)
 	_ribbon.size = Vector2(rw, 50)
 	_ribbon.position = Vector2(_panel.position.x + (sz.x - rw) / 2, _panel.position.y - 22)

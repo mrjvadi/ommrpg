@@ -760,7 +760,7 @@ func _autotest(now: float) -> void:
 			Popups.close_top()
 			await get_tree().create_timer(0.3).timeout
 			hud.start_editing()
-			hud.select("level")
+			hud.select("status")
 			await get_tree().create_timer(0.8).timeout
 			await Cfg.shot("05_layout_editor")
 			hud.stop_editing(false)

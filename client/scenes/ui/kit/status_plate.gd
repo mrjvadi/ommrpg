@@ -7,10 +7,10 @@ extends KitPart
 
 signal portrait_pressed
 
-const FB_SIZE := Vector2(720, 256)
+const FB_SIZE := Vector2(820, 256)
 const FB_ANCHORS := {
-	"name": [250, 60, 360, 32], "hp": [250, 104, 360, 28], "xp": [250, 148, 360, 24],
-	"orb": [120, 128, 96], "badge": [196, 208, 22],
+	"name": [260, 60, 360, 32], "hp": [260, 104, 360, 28], "xp": [260, 148, 360, 24],
+	"orb": [130, 128, 96], "badge": [206, 208, 22],
 }
 
 var name_label: Label
@@ -90,7 +90,7 @@ func _draw() -> void:
 		return
 	# code-drawn plate when the kit is missing
 	var pb := UiKit.fancy_panel(0)
-	var body := Rect2(Vector2(150, 44) * scale_k, Vector2(530, 168) * scale_k)
+	var body := Rect2(Vector2(200, 44) * scale_k, Vector2(560, 168) * scale_k)
 	pb.draw(get_canvas_item(), body)
 	for k in ["name", "hp", "xp"]:
 		UiKit.fancy_inset(0).draw(get_canvas_item(), rect(k).grow(2))

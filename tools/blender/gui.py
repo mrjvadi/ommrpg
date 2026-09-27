@@ -434,22 +434,22 @@ def part_bar(m, color):
 def part_status(m):
     """Metin2-style status plate: portrait orb, name channel and two bar
     channels (hp, xp) plus a level badge socket."""
-    W, H = 720, 256
-    ox, oz, orad = -240, 0, 96
-    box(-150, -84, 300, 84, 0.14, m["iron"], y=0.02, bevel=0.03)
-    box(-150, 78, 300, 84, 0.16, m["bronze"], y=0.0, bevel=0.008)
-    box(-150, -84, 300, -78, 0.16, m["bronze"], y=0.0, bevel=0.008)
-    disc(300, 0, 84, 0.14, m["iron"], y=0.035, bevel=0.03)   # just behind the plate: no coplanar faces
-    ring(300, 0, 82, 5, m["bronze"], y=-0.02)
-    diamond(300, 0, 34, 0.16, m["bronze"], y=-0.03, bevel=0.02)
-    jewel(300, 0, 16, m["sapphire"], m["gold"], y=-0.14)
-    spike(378, 0, 0, 26, 8, m["gold"])
+    W, H = 820, 256
+    ox, oz, orad = -280, 0, 96
+    box(-190, -84, 260, 84, 0.14, m["iron"], y=0.02, bevel=0.03)
+    box(-190, 78, 260, 84, 0.16, m["bronze"], y=0.0, bevel=0.008)
+    box(-190, -84, 260, -78, 0.16, m["bronze"], y=0.0, bevel=0.008)
+    disc(260, 0, 84, 0.14, m["iron"], y=0.035, bevel=0.03)   # just behind the plate: no coplanar faces
+    ring(260, 0, 82, 5, m["bronze"], y=-0.02)
+    diamond(260, 0, 34, 0.16, m["bronze"], y=-0.03, bevel=0.02)
+    jewel(260, 0, 16, m["sapphire"], m["gold"], y=-0.14)
+    spike(338, 0, 0, 26, 8, m["gold"])
     anchors = {}
     for name, z0, z1 in (("name", 36, 68), ("hp", -4, 24), ("xp", -44, -20)):
-        box(-110, z0, 250, z1, 0.08, m["stone_dark"], y=-0.02, bevel=0.01)
-        frame(-112, z0 - 2, 252, z1 + 2, 2, 0.1, m["bronze"], y=-0.03)
-        anchors[name] = [-110, z0, 250, z1]
-    engraved_band_h(-100, 240, -66, m, y=-0.06)
+        box(-150, z0, 210, z1, 0.08, m["stone_dark"], y=-0.02, bevel=0.01)
+        frame(-152, z0 - 2, 212, z1 + 2, 2, 0.1, m["bronze"], y=-0.03)
+        anchors[name] = [-150, z0, 210, z1]
+    engraved_band_h(-140, 200, -66, m, y=-0.06)
     # portrait orb with a jewelled bronze ring
     disc(ox, oz, orad + 26, 0.2, m["iron"], y=-0.02, bevel=0.03)
     ring(ox, oz, orad + 14, 11, m["bronze"], y=-0.08)

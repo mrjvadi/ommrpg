@@ -765,6 +765,9 @@ class Pill extends PanelContainer:
 			var plus := Button.new()
 			plus.custom_minimum_size = Vector2(30, 30)
 			for st in ["normal", "hover", "pressed"]:
+				if Pack.has_part("button_orange_normal"):
+					plus.add_theme_stylebox_override(st, UiKit.button_box("orange", st, 0))
+					continue
 				var s := UiKit.fancy_button("orange", st, 0)
 				s.radius = 7
 				s.shadow_offset = Vector2(0, 2)
