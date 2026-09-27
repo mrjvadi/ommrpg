@@ -72,7 +72,7 @@ func _item(id: String, content: Control) -> Control:
 
 func _build() -> void:
 	# character plate: portrait orb, name, health and experience
-	status = StatusPlate.new(0.42)
+	status = StatusPlate.new(0.46)
 	status.portrait_pressed.connect(func(): menu.emit("character"))
 	hp_bar = status.hp_bar
 	xp_bar = status.xp_bar

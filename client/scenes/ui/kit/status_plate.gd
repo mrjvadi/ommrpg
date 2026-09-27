@@ -7,10 +7,10 @@ extends KitPart
 
 signal portrait_pressed
 
-const FB_SIZE := Vector2(820, 256)
+const FB_SIZE := Vector2(840, 256)
 const FB_ANCHORS := {
-	"name": [260, 60, 360, 32], "hp": [260, 104, 360, 28], "xp": [260, 148, 360, 24],
-	"orb": [130, 128, 96], "badge": [206, 208, 22],
+	"name": [260, 40, 372, 38], "hp": [260, 86, 372, 40], "xp": [260, 134, 372, 34],
+	"orb": [130, 128, 100], "badge": [212, 210, 29],
 }
 
 var name_label: Label
@@ -46,7 +46,7 @@ func _init(k := 0.5) -> void:
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.clip_text = true
 	add_child(name_label)
-	class_label = UiKit.label("", int(nr.size.y * 0.5), UiKit.MUTED, true, 2)
+	class_label = UiKit.label("", maxi(11, int(nr.size.y * 0.55)), UiKit.MUTED, true, 2)
 	class_label.position = nr.position + Vector2(nr.size.x * 0.6, 0)
 	class_label.size = Vector2(nr.size.x * 0.4 - 8, nr.size.y)
 	class_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -77,7 +77,7 @@ func _tube(anchor: String, color: Color) -> ProgressBar:
 			(fill as NineBox).inset = 1.0
 		p.add_theme_stylebox_override("fill", fill)
 	var cap: Label = p.get_meta("caption")
-	cap.add_theme_font_size_override("font_size", maxi(10, int(r.size.y * 0.66)))
+	cap.add_theme_font_size_override("font_size", maxi(11, int(r.size.y * 0.7)))
 	p.position = r.position + Vector2(1, 1)
 	p.size = r.size - Vector2(2, 2)
 	p.custom_minimum_size = p.size
@@ -90,7 +90,7 @@ func _draw() -> void:
 		return
 	# code-drawn plate when the kit is missing
 	var pb := UiKit.fancy_panel(0)
-	var body := Rect2(Vector2(200, 44) * scale_k, Vector2(560, 168) * scale_k)
+	var body := Rect2(Vector2(220, 26) * scale_k, Vector2(560, 204) * scale_k)
 	pb.draw(get_canvas_item(), body)
 	for k in ["name", "hp", "xp"]:
 		UiKit.fancy_inset(0).draw(get_canvas_item(), rect(k).grow(2))

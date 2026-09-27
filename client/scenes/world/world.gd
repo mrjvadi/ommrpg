@@ -107,13 +107,22 @@ func _on_connected() -> void:
 	Game.toast("Welcome to %s" % str(Game.world.get("name", "the world")), UiKit.ACCENT)
 	_refresh_vitals()
 
+## "w:1" -> "World 1", dungeons -> "Dungeon F3", anything else capitalised.
+func _zone_title(z: String, p: Dictionary) -> String:
+	if z.begins_with("d:"):
+		return "Dungeon F%d" % int(p.get("floor", 1))
+	var n := z.trim_prefix("w:").trim_prefix("w")
+	if z.begins_with("w") and n.is_valid_int():
+		return "World " + n
+	return z.replace("_", " ").capitalize()
+
 func _enter_zone(p: Dictionary, floor_data = null) -> void:
 	var z := str(p.zone)
 	path.clear()
 	if z != zone:
 		zone = z
 		if hud:
-			hud.set_zone("Dungeon  F%d" % int(p.get("floor", 1)) if z.begins_with("d:") else z.replace("_", " ").capitalize())
+			hud.set_zone(_zone_title(z, p))
 		for m in monsters.values():
 			m.queue_free()
 		monsters.clear()

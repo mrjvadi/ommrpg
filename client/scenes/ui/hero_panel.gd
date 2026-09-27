@@ -238,6 +238,9 @@ func _render_stats() -> void:
 func _bag_items() -> Array:
 	return _items.filter(func(i): return str(i.get("equipped", "")) == "")
 
+## Sockets shown in the bag grid (empty ones fill up the rest).
+const BAG_SLOTS := 24
+
 func _render_bag() -> void:
 	var head := HBoxContainer.new()
 	var gp := UiKit.pill("gold", "gold")
@@ -258,13 +261,18 @@ func _render_bag() -> void:
 	var bag := _bag_items()
 	bag.sort_custom(func(a, b): return Sprites.rarity_index(str(a.item.rarity)) > Sprites.rarity_index(str(b.item.rarity)))
 	for it in bag:
-		var s := ItemSlot.new(78)
+		var s := ItemSlot.new(72)
 		s.set_item(it)
 		s.pressed.connect(func(): _open_card(it))
 		grid.add_child(s)
+	# the rest of the bag as empty sockets, like an MMO inventory grid
+	for i in maxi(0, BAG_SLOTS - bag.size()):
+		var e := ItemSlot.new(72)
+		e.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		grid.add_child(e)
 	if bag.is_empty():
-		_content.add_child(UiKit.para("Your bag is empty. Hunt monsters and open chests to find gear.", 16, UiKit.MUTED))
-	scroll.resized.connect(func(): grid.columns = maxi(1, int((scroll.size.x - 12) / 86.0)))
+		_content.add_child(UiKit.para("Your bag is empty. Hunt monsters and open chests to find gear.", 15, UiKit.MUTED))
+	scroll.resized.connect(func(): grid.columns = maxi(1, int((scroll.size.x - 12) / 80.0)))
 
 func _show_bag_for(slot: String) -> void:
 	tab = "bag"

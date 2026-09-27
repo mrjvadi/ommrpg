@@ -35,7 +35,7 @@ func _ready() -> void:
 	var left := VBoxContainer.new()
 	left.custom_minimum_size.x = 260
 	left.add_theme_constant_override("separation", 10)
-	row.add_child(left)
+	row.add_child(_framed(left))
 	left.add_child(UiKit.title("Heroes", 30))
 	_roster = VBoxContainer.new()
 	_roster.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -48,7 +48,7 @@ func _ready() -> void:
 
 	# stage
 	var stage_frame := PanelContainer.new()
-	stage_frame.add_theme_stylebox_override("panel", UiKit.inset_box(0))
+	stage_frame.add_theme_stylebox_override("panel", UiKit.window_box(-6))
 	stage_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_frame.clip_contents = true
 	row.add_child(stage_frame)
@@ -72,10 +72,17 @@ func _ready() -> void:
 	_side = VBoxContainer.new()
 	_side.custom_minimum_size.x = 300
 	_side.add_theme_constant_override("separation", 10)
-	row.add_child(_side)
+	row.add_child(_framed(_side))
 	_status = UiKit.para("", 16, UiKit.MUTED, true)
 	_seed = randi()
 	_refresh()
+
+## Side columns sit on the kit's framed stone panel.
+func _framed(c: Control) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiKit.panel_box(10))
+	p.add_child(c)
+	return p
 
 func _pad(m: MarginContainer) -> void:
 	var ins := Telegram.insets_for(get_viewport())

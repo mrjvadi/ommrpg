@@ -18,14 +18,14 @@ const NAMES := {
 	"use": "Use", "target": "Target", "log": "Messages",
 }
 const DEFAULTS := {
-	"status": {"x": 0.165, "y": 0.1, "s": 1.0, "v": true},
-	"wallet": {"x": 0.53, "y": 0.045, "s": 1.0, "v": true},
+	"status": {"x": 0.2, "y": 0.11, "s": 1.0, "v": true},
+	"wallet": {"x": 0.615, "y": 0.045, "s": 1.0, "v": true},
 	"minimap": {"x": 0.91, "y": 0.165, "s": 1.0, "v": true},
 	"menu": {"x": 0.5, "y": 0.92, "s": 1.0, "v": true, "d": "row"},
 	"joystick": {"x": 0.11, "y": 0.77, "s": 1.0, "v": true},
 	"attack": {"x": 0.915, "y": 0.77, "s": 1.0, "v": true},
 	"use": {"x": 0.79, "y": 0.9, "s": 1.0, "v": true},
-	"target": {"x": 0.53, "y": 0.15, "s": 1.0, "v": true},
+	"target": {"x": 0.6, "y": 0.16, "s": 1.0, "v": true},
 	"log": {"x": 0.5, "y": 0.32, "s": 1.0, "v": true},
 }
 

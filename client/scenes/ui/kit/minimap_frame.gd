@@ -12,12 +12,12 @@ var zone_label: Label
 func _init(k := 0.42) -> void:
 	super._init("minimap", k, FB_SIZE, FB_ANCHORS)
 	var zr := rect("zone")
-	zone_label = UiKit.label("", maxi(10, int(zr.size.y * 0.78)), UiKit.GOLD, true, 3)
+	zone_label = UiKit.label("", maxi(12, int(zr.size.y * 0.9)), UiKit.GOLD, true, 3)
 	zone_label.add_theme_font_override("font", UiKit.FONT_TITLE)
 	zone_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	zone_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	zone_label.position = zr.position
-	zone_label.size = zr.size
+	zone_label.position = zr.position - Vector2(0, 6)
+	zone_label.size = zr.size + Vector2(0, 6)
 	zone_label.clip_text = true
 	add_child(zone_label)
 

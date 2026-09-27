@@ -757,13 +757,13 @@ class Pill extends PanelContainer:
 			holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		else:
 			row.add_child(_icon)
-		value_label = UiKit.label("0", 18, UiKit.TEXT, true, 4)
-		value_label.custom_minimum_size.x = 64
+		value_label = UiKit.label("0", 17, UiKit.TEXT, true, 3)
+		value_label.custom_minimum_size.x = 46
 		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		row.add_child(value_label)
 		if plus_cb.is_valid():
 			var plus := Button.new()
-			plus.custom_minimum_size = Vector2(30, 30)
+			plus.custom_minimum_size = Vector2(26, 26)
 			for st in ["normal", "hover", "pressed"]:
 				if Pack.has_part("button_orange_normal"):
 					plus.add_theme_stylebox_override(st, UiKit.button_box("orange", st, 0))
@@ -789,8 +789,8 @@ class PlusMark extends Control:
 
 	func _draw() -> void:
 		var c := size / 2 - Vector2(0, 1.5)
-		var r := minf(size.x, size.y) * 0.27
-		for w in [7.0, 4.0]:
-			var col := UiKit.OUTLINE if w > 5 else Color.WHITE
+		var r := minf(size.x, size.y) * 0.22
+		for w in [5.0, 2.5]:
+			var col := UiKit.OUTLINE if w > 4 else Color("fff2c8")
 			draw_line(c + Vector2(-r, 0), c + Vector2(r, 0), col, w, true)
 			draw_line(c + Vector2(0, -r), c + Vector2(0, r), col, w, true)
