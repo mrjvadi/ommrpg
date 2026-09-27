@@ -37,7 +37,8 @@ var _faded: Array = []
 ## The see-through circle around the player (see_through.gdshader), shared
 ## by every prop's alternative tile.
 var see_through := _see_through_material()
-const SEE_RADIUS := 64.0
+const SEE_RADIUS := 112.0 # px, 3.5 tiles
+const SEE_SOFTNESS := 48.0
 
 func setup(tileset_texture: Texture2D) -> void:
 	var ts := TileSet.new()
@@ -123,11 +124,13 @@ func _set_object_cell(cell: Vector2i, o: int) -> void:
 func fade_around(p: Vector2i, center: Vector2) -> void:
 	see_through.set_shader_parameter("center", to_global(center))
 	see_through.set_shader_parameter("radius", SEE_RADIUS)
+	see_through.set_shader_parameter("softness", SEE_SOFTNESS)
 	var now: Array = []
 	if not _props.is_empty():
 		var circle := Rect2(center - Vector2(SEE_RADIUS, SEE_RADIUS), Vector2(SEE_RADIUS, SEE_RADIUS) * 2).grow(TILE)
-		for y in range(p.y, p.y + 6):
-			for x in range(p.x - 4, p.x + 5):
+		var reach := ceili(SEE_RADIUS / TILE) + 4
+		for y in range(p.y, p.y + reach + 2):
+			for x in range(p.x - reach, p.x + reach + 1):
 				var cell := Vector2i(x, y)
 				if objects.get_cell_source_id(cell) != 1:
 					continue
