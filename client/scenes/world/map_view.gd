@@ -37,8 +37,8 @@ var _faded: Array = []
 ## The see-through circle around the player (see_through.gdshader), shared
 ## by every prop's alternative tile.
 var see_through := _see_through_material()
-const SEE_RADIUS := 112.0 # px, 3.5 tiles
-const SEE_SOFTNESS := 48.0
+const SEE_RADIUS := 160.0 # px, 5 tiles
+const SEE_SOFTNESS := 64.0
 
 func setup(tileset_texture: Texture2D) -> void:
 	var ts := TileSet.new()
