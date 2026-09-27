@@ -279,9 +279,12 @@ func _process(delta: float) -> void:
 		_try_attack()
 	var near := map.nearest_interactive(pos)
 	var cell := Vector2i(floori(pos.x), floori(pos.y))
+	var chest := player.position + Vector2(0, -20)
 	if cell != _fade_cell:
 		_fade_cell = cell
-		map.fade_around(cell)
+		map.fade_around(cell, chest)
+	else:
+		map.move_see_through(chest)
 	hud.interact_btn.highlight = not near.is_empty()
 	hud.interact_btn.queue_redraw()
 	_update_target_frame()

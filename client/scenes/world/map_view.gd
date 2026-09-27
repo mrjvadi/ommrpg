@@ -34,6 +34,10 @@ var _tileset: TileSet
 ## atlas coords -> [size, base] of each prop sprite, for occlusion fading
 var _prop_rects := {}
 var _faded: Array = []
+## The see-through circle around the player (see_through.gdshader), shared
+## by every prop's alternative tile.
+var see_through := _see_through_material()
+const SEE_RADIUS := 64.0
 
 func setup(tileset_texture: Texture2D) -> void:
 	var ts := TileSet.new()
@@ -91,12 +95,13 @@ func _add_props() -> void:
 			var base_center := Vector2(int(e.base[0]) * TILE + TILE / 2, int(e.base[1]) * TILE + TILE / 2)
 			td.texture_origin = Vector2i(base_center - Vector2(sz * TILE) / 2)
 			td.y_sort_origin = 12
-			# alternative 1: see-through, used while it hides the player
+			# alternative 1: drawn with the see-through circle, used while the
+			# prop stands in front of the player
 			var alt := src.create_alternative_tile(at)
 			var ad := src.get_tile_data(at, alt)
 			ad.texture_origin = td.texture_origin
 			ad.y_sort_origin = 12
-			ad.modulate = Color(1, 1, 1, 0.42)
+			ad.material = see_through
 			_prop_rects[at] = [sz, Vector2i(int(e.base[0]), int(e.base[1]))]
 			variants.append(at)
 		_props[int(key)] = variants
@@ -110,14 +115,19 @@ func _set_object_cell(cell: Vector2i, o: int) -> void:
 	else:
 		objects.set_cell(cell, 0, Vector2i(o, OBJECT_ROW))
 
-## Makes props standing in front of the player (their sprite covers the
-## player's tile and their base is further down the screen) see-through,
-## the way top-down games fade tree canopies and roofs.
-func fade_around(p: Vector2i) -> void:
+## An invisible circle follows the player: every prop in front of the
+## player (drawn over it) whose sprite reaches into that circle switches to
+## the see-through tile, and the shader fades it smoothly inside the circle
+## only, so the hero is never hidden while the rest of a tree stays solid.
+## `center` is the player's chest in this node's coordinates.
+func fade_around(p: Vector2i, center: Vector2) -> void:
+	see_through.set_shader_parameter("center", to_global(center))
+	see_through.set_shader_parameter("radius", SEE_RADIUS)
 	var now: Array = []
 	if not _props.is_empty():
-		for y in range(p.y + 1, p.y + 5):
-			for x in range(p.x - 3, p.x + 4):
+		var circle := Rect2(center - Vector2(SEE_RADIUS, SEE_RADIUS), Vector2(SEE_RADIUS, SEE_RADIUS) * 2).grow(TILE)
+		for y in range(p.y, p.y + 6):
+			for x in range(p.x - 4, p.x + 5):
 				var cell := Vector2i(x, y)
 				if objects.get_cell_source_id(cell) != 1:
 					continue
@@ -126,15 +136,25 @@ func fade_around(p: Vector2i) -> void:
 					continue
 				var sz: Vector2i = info[0]
 				var base: Vector2i = info[1]
-				var top_left := cell - base
-				if Rect2i(top_left, sz).grow(0).has_point(p) or Rect2i(top_left, sz).has_point(p + Vector2i(0, -1)):
+				var sprite := Rect2(Vector2(cell - base) * TILE, Vector2(sz) * TILE)
+				if sprite.intersects(circle):
 					now.append(cell)
 	for cell in _faded:
 		if not cell in now and objects.get_cell_source_id(cell) == 1:
 			objects.set_cell(cell, 1, objects.get_cell_atlas_coords(cell), 0)
 	for cell in now:
-		objects.set_cell(cell, 1, objects.get_cell_atlas_coords(cell), 1)
+		if objects.get_cell_alternative_tile(cell) != 1:
+			objects.set_cell(cell, 1, objects.get_cell_atlas_coords(cell), 1)
 	_faded = now
+
+## Moves the circle with the player every frame (cheap: one uniform).
+func move_see_through(center: Vector2) -> void:
+	see_through.set_shader_parameter("center", to_global(center))
+
+static func _see_through_material() -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://assets/shaders/see_through.gdshader")
+	return m
 
 func _repaint_objects() -> void:
 	for cell in objects.get_used_cells():
